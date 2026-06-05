@@ -296,8 +296,8 @@ This project is licensed under the **MIT License** — feel free to use, modify,
 
 <div align="center">
 
-**Built with ❤️ by [SihanUdayaratna03](https://github.com/SihanUdayaratna03)**
+**Built with  by [Sihan Udayaratna](https://github.com/SihanUdayaratna03)**
 
-⭐ Star this repo if you found it useful!
+
 
 </div>
