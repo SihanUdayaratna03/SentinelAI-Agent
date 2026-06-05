@@ -346,27 +346,8 @@ graph TD
 
 ---
 
-## 🔒 Environment Variables
 
-Both agents use a `.env` file in their respective directories:
-
-```env
-# Required for both agents
-GEMINI_API_KEY=AIzaSy...         # Google AI Studio API key
-FIRECRAWL_API_KEY=fc-...         # Firecrawl.dev API key
-```
-
-> ⚠️ **Never commit your `.env` files to GitHub!** They are already listed in `.gitignore`.
-
----
-
-## 📝 License
-
-This project is licensed under the **MIT License** — feel free to use, modify, and distribute it.
-
----
-
-## 🙏 Acknowledgements
+##  Acknowledgements
 
 - [Google AI Studio](https://aistudio.google.com) — for providing Gemini API access
 - [Firecrawl](https://firecrawl.dev) — for the best-in-class web scraping API
@@ -377,7 +358,7 @@ This project is licensed under the **MIT License** — feel free to use, modify,
 
 <div align="center">
 
-**Built with  by [Sihan Udayaratna](https://github.com/SihanUdayaratna03)**
+**Create by [Sihan Udayaratna](https://github.com/SihanUdayaratna03)**
 
 
 
