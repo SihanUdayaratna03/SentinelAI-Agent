@@ -232,27 +232,27 @@ graph TD
     U[User] --> G[Gemini 2.5 Flash<br>LLM backbone]
     U --> F[Firecrawl API<br>Web scraping engine]
     
-    subgraph Simple Agent [Simple agent - Conversational scraper]
+    subgraph SimpleAgent [Simple agent - Conversational scraper]
         M1[main.py<br>Chat loop]
         MCP[MCP server npx<br>20+ Firecrawl tools]
     end
     
-    subgraph Advanced Agent [Advanced agent - LangGraph pipeline]
+    subgraph AdvancedAgent [Advanced agent - LangGraph pipeline]
         W1[workflow.py<br>3-node state machine]
         S1[src/<br>models • firecrawl • prompts]
     end
     
-    G --> Simple Agent
-    F --> Advanced Agent
+    G --> SimpleAgent
+    F --> AdvancedAgent
     
-    Simple Agent --> A1[Scraped answer]
-    Advanced Agent --> A2[Research report]
+    SimpleAgent --> A1[Scraped answer]
+    AdvancedAgent --> A2[Research report]
     
     style U fill:#4B5563,color:#fff,stroke:none
     style G fill:#4338CA,color:#fff,stroke:none
     style F fill:#4338CA,color:#fff,stroke:none
-    style Simple Agent fill:#064E3B,color:#fff,stroke:#059669
-    style Advanced Agent fill:#1E3A8A,color:#fff,stroke:#3B82F6
+    style SimpleAgent fill:#064E3B,color:#fff,stroke:#059669
+    style AdvancedAgent fill:#1E3A8A,color:#fff,stroke:#3B82F6
     style M1 fill:#374151,color:#fff,stroke:none
     style MCP fill:#374151,color:#fff,stroke:none
     style W1 fill:#374151,color:#fff,stroke:none
@@ -268,7 +268,7 @@ graph TD
     M --> G[Gemini 2.5 Flash<br>Tool selection • reasoning]
     G --> MCP[MCP server - firecrawl via npx, Node.js 18+]
     
-    subgraph MCP Tools
+    subgraph MCPTools [MCP Tools]
         T1[scrape]
         T2[search]
         T3[crawl]
@@ -276,8 +276,8 @@ graph TD
         T5[map]
     end
     
-    MCP --- MCP Tools
-    MCP Tools --> LW[Live web<br>Any public URL • search results]
+    MCP --- MCPTools
+    MCPTools --> LW[Live web<br>Any public URL • search results]
     LW --> SA[Structured answer → user]
     
     style UP fill:#4B5563,color:#fff,stroke:none
