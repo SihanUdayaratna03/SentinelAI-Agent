@@ -224,109 +224,103 @@ Supabase is the best choice for open-source Firebase alternatives...
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Creative Architecture
 
-### High-Level System Architecture
-```mermaid
-graph TD
-    U[User] --> G[Gemini 2.5 Flash<br>LLM backbone]
-    U --> F[Firecrawl API<br>Web scraping engine]
-    
-    subgraph SimpleAgent [Simple agent - Conversational scraper]
-        M1[main.py<br>Chat loop]
-        MCP[MCP server npx<br>20+ Firecrawl tools]
-    end
-    
-    subgraph AdvancedAgent [Advanced agent - LangGraph pipeline]
-        W1[workflow.py<br>3-node state machine]
-        S1[src/<br>models • firecrawl • prompts]
-    end
-    
-    G --> SimpleAgent
-    F --> AdvancedAgent
-    
-    SimpleAgent --> A1[Scraped answer]
-    AdvancedAgent --> A2[Research report]
-    
-    style U fill:#4B5563,color:#fff,stroke:none
-    style G fill:#4338CA,color:#fff,stroke:none
-    style F fill:#4338CA,color:#fff,stroke:none
-    style SimpleAgent fill:#064E3B,color:#fff,stroke:#059669
-    style AdvancedAgent fill:#1E3A8A,color:#fff,stroke:#3B82F6
-    style M1 fill:#374151,color:#fff,stroke:none
-    style MCP fill:#374151,color:#fff,stroke:none
-    style W1 fill:#374151,color:#fff,stroke:none
-    style S1 fill:#374151,color:#fff,stroke:none
-    style A1 fill:#047857,color:#fff,stroke:none
-    style A2 fill:#1D4ED8,color:#fff,stroke:none
-```
+### 🧠 The Dual-Brain System
+SentinelAI operates using two distinct "brains" depending on your needs. Both are powered by the cutting-edge **Gemini 2.5 Flash LLM** and utilize **Firecrawl** for real-time web awareness.
 
-### Simple Agent Data Flow
-```mermaid
-graph TD
-    UP[User prompt<br>Natural language query] --> M[main.py<br>Chat loop • history]
-    M --> G[Gemini 2.5 Flash<br>Tool selection • reasoning]
-    G --> MCP[MCP server - firecrawl via npx, Node.js 18+]
-    
-    subgraph MCPTools [MCP Tools]
-        T1[scrape]
-        T2[search]
-        T3[crawl]
-        T4[extract]
-        T5[map]
-    end
-    
-    MCP --- MCPTools
-    MCPTools --> LW[Live web<br>Any public URL • search results]
-    LW --> SA[Structured answer → user]
-    
-    style UP fill:#4B5563,color:#fff,stroke:none
-    style M fill:#047857,color:#fff,stroke:none
-    style G fill:#4338CA,color:#fff,stroke:none
-    style MCP fill:#374151,color:#fff,stroke:#6B7280,stroke-dasharray: 5 5
-    style T1 fill:#047857,color:#fff,stroke:none
-    style T2 fill:#047857,color:#fff,stroke:none
-    style T3 fill:#047857,color:#fff,stroke:none
-    style T4 fill:#047857,color:#fff,stroke:none
-    style T5 fill:#047857,color:#fff,stroke:none
-    style LW fill:#4B5563,color:#fff,stroke:none
-    style SA fill:#047857,color:#fff,stroke:none
-```
+<details open>
+<summary><b>Click to View System Architecture Map</b></summary>
 
-### Advanced Agent LangGraph Pipeline
 ```mermaid
-graph TD
-    Q[Developer tools query<br>e.g. 'best Firebase alternatives'] --> LG
+flowchart TB
+    %% Styling
+    classDef user fill:#2d3748,stroke:#4a5568,stroke-width:2px,color:#fff,rx:10px,ry:10px
+    classDef llm fill:#5a67d8,stroke:#434190,stroke-width:2px,color:#fff,rx:10px,ry:10px
+    classDef agent fill:#2c7a7b,stroke:#234e52,stroke-width:2px,color:#fff,rx:10px,ry:10px
+    classDef db fill:#c05621,stroke:#7b341e,stroke-width:2px,color:#fff,rx:10px,ry:10px
+    classDef file fill:#4a5568,stroke:#2d3748,stroke-width:1px,color:#e2e8f0
     
-    subgraph LG [LangGraph state machine - workflow.py]
+    %% Nodes
+    USER(("👤 User Input")):::user
+    
+    GEMINI{"🧠 Gemini 2.5 Flash"}:::llm
+    FIRE{"🔥 Firecrawl API"}:::db
+    
+    subgraph SA ["🟢 Simple Agent (Conversational)"]
         direction TB
-        E[extract_tools<br>Web search → tool names] --> R[research<br>Scrape • extract features]
-        R --> A[analyze<br>Aggregate • recommend]
-        
-        P[prompts.py<br>LLM prompt templates] --- E
-        F[firecrawl.py<br>Firecrawl service wrapper] --- R
-        M[models.py<br>Pydantic schemas] --- A
-        
-        G2[Gemini 2.5 Flash<br>Structured JSON output • all 3 nodes]
-        E -.-> G2
-        R -.-> G2
-        A -.-> G2
+        M1["💬 main.py (Chat Loop)"]:::file
+        MCP["🛠️ MCP Server (npx)"]:::file
+        M1 --> MCP
     end
     
-    LG --> FA[Firecrawl API<br>Per-tool website scraping]
-    FA --> RPT[Structured tool comparison report<br>Pricing • tech stack • recommendation]
+    subgraph AA ["🔵 Advanced Agent (LangGraph)"]
+        direction TB
+        W1["🔄 workflow.py (State Machine)"]:::file
+        S1["📂 src/ (models, prompts)"]:::file
+        W1 --> S1
+    end
     
-    style Q fill:#4B5563,color:#fff,stroke:none
-    style LG fill:#1E3A8A,color:#fff,stroke:#3B82F6,stroke-dasharray: 5 5
-    style E fill:#1D4ED8,color:#fff,stroke:none
-    style R fill:#1D4ED8,color:#fff,stroke:none
-    style A fill:#1D4ED8,color:#fff,stroke:none
-    style P fill:#4B5563,color:#fff,stroke:none
-    style F fill:#4B5563,color:#fff,stroke:none
-    style M fill:#4B5563,color:#fff,stroke:none
-    style G2 fill:#4338CA,color:#fff,stroke:none
-    style FA fill:#4338CA,color:#fff,stroke:none
-    style RPT fill:#1D4ED8,color:#fff,stroke:none
+    %% Connections
+    USER -->|Asks Question| GEMINI
+    USER -->|Requests Research| FIRE
+    
+    GEMINI ==> SA
+    FIRE ==> AA
+    
+    SA -->|Scrapes Live Web| OUT1[/"📄 Quick Answer"/]:::agent
+    AA -->|Deep Analysis| OUT2[/"📊 Detailed Report"/]:::agent
+```
+</details>
+
+---
+
+### 🧩 Component Breakdown
+
+| Component | Technology | Purpose | What it actually does |
+| :--- | :--- | :--- | :--- |
+| **🧠 The Brain** | `Gemini 2.5 Flash` | Reasoning Engine | Decides which tools to use, analyzes scraped content, and formats the final answers. |
+| **🕸️ The Eyes** | `Firecrawl + MCP` | Web Scraper | Reads live websites, bypasses basic bot protections, and converts HTML into clean markdown. |
+| **🔄 The Skeleton** | `LangGraph` | State Machine | Keeps the Advanced Agent on track through its 3-step pipeline (Extract → Research → Analyze). |
+| **🛡️ The Bouncer** | `Pydantic` | Data Validator | Ensures the Advanced Agent always outputs valid, structured JSON reports instead of messy text. |
+
+---
+
+### 🌊 Flow: How the Advanced Agent Thinks
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant LangGraph as 🔄 LangGraph
+    participant Gemini as 🧠 Gemini
+    participant Web as 🌐 Firecrawl
+    
+    User->>LangGraph: "Find best Firebase alternatives"
+    
+    rect rgb(30, 58, 138)
+    Note over LangGraph,Web: Phase 1: Extraction
+    LangGraph->>Web: Search web for "Firebase alternatives"
+    Web-->>LangGraph: Raw search results
+    LangGraph->>Gemini: Extract tool names
+    Gemini-->>LangGraph: [Supabase, Appwrite, PocketBase]
+    end
+    
+    rect rgb(6, 78, 59)
+    Note over LangGraph,Web: Phase 2: Deep Research
+    loop For each tool
+        LangGraph->>Web: Scrape official website
+        Web-->>LangGraph: Markdown content
+    end
+    end
+    
+    rect rgb(124, 45, 18)
+    Note over LangGraph,Web: Phase 3: Analysis
+    LangGraph->>Gemini: Analyze features & pricing
+    Gemini-->>LangGraph: Structured JSON Report
+    end
+    
+    LangGraph->>User: 📊 Final Developer Recommendation
 ```
 
 ---
