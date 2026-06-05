@@ -226,26 +226,107 @@ Supabase is the best choice for open-source Firebase alternatives...
 
 ## 🏗️ Architecture
 
+### High-Level System Architecture
+```mermaid
+graph TD
+    U[User] --> G[Gemini 2.5 Flash<br>LLM backbone]
+    U --> F[Firecrawl API<br>Web scraping engine]
+    
+    subgraph Simple Agent [Simple agent - Conversational scraper]
+        M1[main.py<br>Chat loop]
+        MCP[MCP server npx<br>20+ Firecrawl tools]
+    end
+    
+    subgraph Advanced Agent [Advanced agent - LangGraph pipeline]
+        W1[workflow.py<br>3-node state machine]
+        S1[src/<br>models • firecrawl • prompts]
+    end
+    
+    G --> Simple Agent
+    F --> Advanced Agent
+    
+    Simple Agent --> A1[Scraped answer]
+    Advanced Agent --> A2[Research report]
+    
+    style U fill:#4B5563,color:#fff,stroke:none
+    style G fill:#4338CA,color:#fff,stroke:none
+    style F fill:#4338CA,color:#fff,stroke:none
+    style Simple Agent fill:#064E3B,color:#fff,stroke:#059669
+    style Advanced Agent fill:#1E3A8A,color:#fff,stroke:#3B82F6
+    style M1 fill:#374151,color:#fff,stroke:none
+    style MCP fill:#374151,color:#fff,stroke:none
+    style W1 fill:#374151,color:#fff,stroke:none
+    style S1 fill:#374151,color:#fff,stroke:none
+    style A1 fill:#047857,color:#fff,stroke:none
+    style A2 fill:#1D4ED8,color:#fff,stroke:none
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    SentinelAI Agent                     │
-│                                                         │
-│  ┌─────────────────┐    ┌─────────────────────────────┐ │
-│  │  Simple Agent   │    │      Advanced Agent         │ │
-│  │                 │    │                             │ │
-│  │  User Input     │    │  LangGraph State Machine    │ │
-│  │      │          │    │                             │ │
-│  │  Gemini 2.5     │    │  ┌──────────────────────┐  │ │
-│  │  Flash LLM      │    │  │ 1. extract_tools node │  │ │
-│  │      │          │    │  │ 2. research node      │  │ │
-│  │  MCP Firecrawl  │    │  │ 3. analyze node       │  │ │
-│  │  Tools (20+)    │    │  └──────────────────────┘  │ │
-│  │      │          │    │           │                 │ │
-│  │  Web Scraping   │    │  Firecrawl Service          │ │
-│  │  & Search       │    │  + Gemini Structured Output │ │
-│  └─────────────────┘    └─────────────────────────────┘ │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
+
+### Simple Agent Data Flow
+```mermaid
+graph TD
+    UP[User prompt<br>Natural language query] --> M[main.py<br>Chat loop • history]
+    M --> G[Gemini 2.5 Flash<br>Tool selection • reasoning]
+    G --> MCP[MCP server - firecrawl via npx, Node.js 18+]
+    
+    subgraph MCP Tools
+        T1[scrape]
+        T2[search]
+        T3[crawl]
+        T4[extract]
+        T5[map]
+    end
+    
+    MCP --- MCP Tools
+    MCP Tools --> LW[Live web<br>Any public URL • search results]
+    LW --> SA[Structured answer → user]
+    
+    style UP fill:#4B5563,color:#fff,stroke:none
+    style M fill:#047857,color:#fff,stroke:none
+    style G fill:#4338CA,color:#fff,stroke:none
+    style MCP fill:#374151,color:#fff,stroke:#6B7280,stroke-dasharray: 5 5
+    style T1 fill:#047857,color:#fff,stroke:none
+    style T2 fill:#047857,color:#fff,stroke:none
+    style T3 fill:#047857,color:#fff,stroke:none
+    style T4 fill:#047857,color:#fff,stroke:none
+    style T5 fill:#047857,color:#fff,stroke:none
+    style LW fill:#4B5563,color:#fff,stroke:none
+    style SA fill:#047857,color:#fff,stroke:none
+```
+
+### Advanced Agent LangGraph Pipeline
+```mermaid
+graph TD
+    Q[Developer tools query<br>e.g. 'best Firebase alternatives'] --> LG
+    
+    subgraph LG [LangGraph state machine - workflow.py]
+        direction TB
+        E[extract_tools<br>Web search → tool names] --> R[research<br>Scrape • extract features]
+        R --> A[analyze<br>Aggregate • recommend]
+        
+        P[prompts.py<br>LLM prompt templates] --- E
+        F[firecrawl.py<br>Firecrawl service wrapper] --- R
+        M[models.py<br>Pydantic schemas] --- A
+        
+        G2[Gemini 2.5 Flash<br>Structured JSON output • all 3 nodes]
+        E -.-> G2
+        R -.-> G2
+        A -.-> G2
+    end
+    
+    LG --> FA[Firecrawl API<br>Per-tool website scraping]
+    FA --> RPT[Structured tool comparison report<br>Pricing • tech stack • recommendation]
+    
+    style Q fill:#4B5563,color:#fff,stroke:none
+    style LG fill:#1E3A8A,color:#fff,stroke:#3B82F6,stroke-dasharray: 5 5
+    style E fill:#1D4ED8,color:#fff,stroke:none
+    style R fill:#1D4ED8,color:#fff,stroke:none
+    style A fill:#1D4ED8,color:#fff,stroke:none
+    style P fill:#4B5563,color:#fff,stroke:none
+    style F fill:#4B5563,color:#fff,stroke:none
+    style M fill:#4B5563,color:#fff,stroke:none
+    style G2 fill:#4338CA,color:#fff,stroke:none
+    style FA fill:#4338CA,color:#fff,stroke:none
+    style RPT fill:#1D4ED8,color:#fff,stroke:none
 ```
 
 ---
