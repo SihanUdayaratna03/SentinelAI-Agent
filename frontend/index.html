@@ -3,359 +3,258 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Sentinel AI — A powerful dual-agent AI system powered by Google Gemini 2.5 Flash, LangGraph, and Firecrawl for real-time web research and intelligent developer tool analysis." />
-  <meta name="keywords" content="Sentinel AI, Gemini, LangGraph, Firecrawl, AI Agent, web scraping, developer tools" />
-  <meta property="og:title" content="Sentinel AI — Dual-Agent Intelligence" />
-  <meta property="og:description" content="Real-time web research and intelligent developer tool analysis powered by Gemini 2.5 Flash." />
-  <title>Sentinel AI — Dual-Agent Intelligence</title>
+  <meta name="description" content="Sentinel AI — Dual-agent AI powered by Gemini 2.5 Flash, LangGraph & Firecrawl." />
+  <title>Sentinel AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>" />
 </head>
 <body>
 
-  <!-- =====================================================
-       AMBIENT BACKGROUND (shared across views)
-  ====================================================== -->
-  <div class="bg-canvas" aria-hidden="true">
+  <!-- Ambient Background -->
+  <div class="ambient" aria-hidden="true">
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
     <div class="orb orb-3"></div>
-    <div class="orb orb-4"></div>
+    <div class="noise"></div>
   </div>
-  <div class="bg-grid" aria-hidden="true"></div>
 
-  <!-- =====================================================
-       VIEW 1 — LANDING PAGE
-  ====================================================== -->
-  <section id="landing" class="view" role="main" aria-label="Landing page">
-
-    <!-- Navbar -->
-    <nav class="navbar" aria-label="Primary navigation">
-      <a class="nav-logo" href="#" aria-label="Sentinel AI home">
-        <div class="nav-logo-icon" aria-hidden="true">🛡️</div>
-        <span class="nav-logo-text">Sentinel AI</span>
-      </a>
-      <div class="nav-links" role="list">
-        <span class="nav-link" role="listitem" id="nav-simple" tabindex="0">Simple Agent</span>
-        <span class="nav-link" role="listitem" id="nav-advanced" tabindex="0">Advanced Agent</span>
-        <span class="nav-link" role="listitem" id="nav-docs" tabindex="0">Docs</span>
+  <!-- Login Modal -->
+  <div class="login-modal" id="login-modal">
+    <div class="login-card">
+      <div class="brand-icon" style="margin: 0 auto 20px;">
+        <svg viewBox="0 0 32 32" fill="none" style="width:52px;height:52px;">
+          <path d="M16 2C16 9.732 9.732 16 2 16C9.732 16 16 22.268 16 30C16 22.268 22.268 16 30 16C22.268 16 16 9.732 16 2Z" fill="url(#b1)"/>
+          <defs>
+            <linearGradient id="b1" x1="2" y1="2" x2="30" y2="30">
+              <stop stop-color="#818cf8"/>
+              <stop offset=".45" stop-color="#a78bfa"/>
+              <stop offset="1" stop-color="#f472b6"/>
+            </linearGradient>
+          </defs>
+        </svg>
       </div>
-      <button class="nav-cta" id="nav-get-started" aria-label="Get started with Sentinel AI">
-        Get Started →
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:6px;font-size:22px;">Welcome to Sentinel AI</h2>
+      <p style="color:var(--t-mid);font-size:14px;margin-bottom:28px;">Sign in with your Google account to continue.</p>
+      
+      <button id="mock-google-btn" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:11px 16px;background:#fff;color:#3c4043;border:1px solid #dadce0;border-radius:6px;font-family:Roboto,Arial,sans-serif;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:0px;box-shadow:0 1px 3px rgba(0,0,0,0.12);transition:box-shadow 0.2s;">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 48 48"><g><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path></g></svg>
+        Sign in with Google
       </button>
-    </nav>
-
-    <!-- Hero -->
-    <header class="hero" aria-labelledby="hero-heading">
-      <div class="hero-badge" aria-label="Powered by Gemini 2.5 Flash">
-        <span class="hero-badge-dot" aria-hidden="true"></span>
-        Powered by Gemini 2.5 Flash
-      </div>
-
-      <h1 class="hero-title" id="hero-heading">
-        <span class="hero-title-main">Welcome to Sentinel AI</span>
-      </h1>
-
-      <p class="hero-subtitle">
-        A powerful dual-agent system for real-time web research and intelligent developer tool analysis — choose your experience.
-      </p>
-
-      <div class="hero-actions">
-        <button class="btn-primary" id="hero-get-started" aria-label="Launch Sentinel AI">
-          Launch Sentinel AI
-          <span class="btn-arrow" aria-hidden="true">→</span>
-        </button>
-        <button class="btn-secondary" id="hero-learn-more" aria-label="Learn more about Sentinel AI">
-          <span aria-hidden="true">📖</span> Learn More
-        </button>
-      </div>
-    </header>
-
-    <!-- Stats Strip -->
-    <div class="stats-strip" role="list" aria-label="Key statistics">
-      <div class="stat-item" role="listitem">
-        <span class="stat-value">2</span>
-        <span class="stat-label">Agent Modes</span>
-      </div>
-      <div class="stat-item" role="listitem">
-        <span class="stat-value">20+</span>
-        <span class="stat-label">Web Tools</span>
-      </div>
-      <div class="stat-item" role="listitem">
-        <span class="stat-value">3</span>
-        <span class="stat-label">Pipeline Steps</span>
-      </div>
-      <div class="stat-item" role="listitem">
-        <span class="stat-value">∞</span>
-        <span class="stat-label">Possibilities</span>
-      </div>
+      
+      <p id="login-error" style="color:#fca5a5;font-size:13px;margin-top:14px;display:none;"></p>
     </div>
+  </div>
 
-    <!-- Features -->
-    <section class="features-section" aria-labelledby="features-heading">
-      <p class="section-label">Capabilities</p>
-      <h2 class="section-title" id="features-heading">Everything You Need to Research Smarter</h2>
-
-      <div class="features-grid" role="list">
-
-        <article class="feature-card" role="listitem" tabindex="0">
-          <div class="feature-icon purple" aria-hidden="true">🔍</div>
-          <h3 class="feature-title">Real-time Web Scraping</h3>
-          <p class="feature-desc">Scrape any website and extract structured data on demand using Firecrawl's enterprise-grade web crawling engine.</p>
-        </article>
-
-        <article class="feature-card" role="listitem" tabindex="0">
-          <div class="feature-icon blue" aria-hidden="true">🤖</div>
-          <h3 class="feature-title">Dual Agent System</h3>
-          <p class="feature-desc">Choose between a conversational Simple Agent or a multi-step Advanced research agent — tailored to your workflow.</p>
-        </article>
-
-        <article class="feature-card" role="listitem" tabindex="0">
-          <div class="feature-icon green" aria-hidden="true">🧠</div>
-          <h3 class="feature-title">Gemini 2.5 Flash</h3>
-          <p class="feature-desc">Powered by Google's latest and most capable AI model for fast, accurate, and contextually-aware responses.</p>
-        </article>
-
-        <article class="feature-card" role="listitem" tabindex="0">
-          <div class="feature-icon pink" aria-hidden="true">🔄</div>
-          <h3 class="feature-title">LangGraph Workflows</h3>
-          <p class="feature-desc">Structured multi-step agentic pipelines with full state management via LangGraph's powerful state machine framework.</p>
-        </article>
-
-        <article class="feature-card" role="listitem" tabindex="0">
-          <div class="feature-icon indigo" aria-hidden="true">📊</div>
-          <h3 class="feature-title">Structured Output</h3>
-          <p class="feature-desc">Strongly typed Pydantic data models ensure reliable, schema-validated structured output you can depend on.</p>
-        </article>
-
-        <article class="feature-card" role="listitem" tabindex="0">
-          <div class="feature-icon amber" aria-hidden="true">💬</div>
-          <h3 class="feature-title">Persistent Chat</h3>
-          <p class="feature-desc">Maintain full conversation history with context retention across your entire research session.</p>
-        </article>
-
+  <!-- Google Email Input Modal -->
+  <div id="google-email-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;color:#202124;width:420px;max-width:92vw;border-radius:12px;padding:44px 40px 36px;text-align:center;font-family:'Google Sans',Roboto,Arial,sans-serif;box-shadow:0 8px 40px rgba(0,0,0,0.25);">
+      <!-- Google logo -->
+      <div style="margin-bottom:20px;">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="40px" height="40px" viewBox="0 0 48 48"><g><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path></g></svg>
       </div>
-    </section>
-
-    <!-- CTA -->
-    <section class="cta-section" aria-labelledby="cta-heading">
-      <div class="cta-card">
-        <h2 class="cta-title" id="cta-heading">Ready to Start Researching?</h2>
-        <p class="cta-desc">Pick your agent mode and start exploring the web with AI-powered intelligence in seconds.</p>
-        <button class="btn-primary" id="cta-get-started" aria-label="Choose your agent mode">
-          Choose Your Agent
-          <span class="btn-arrow" aria-hidden="true">→</span>
-        </button>
+      <h2 style="font-size:22px;font-weight:400;margin-bottom:8px;color:#202124;">Sign in</h2>
+      <p style="font-size:14px;color:#5f6368;margin-bottom:28px;">to continue to Sentinel AI</p>
+      
+      <!-- Email input step -->
+      <div id="google-step-email">
+        <input id="google-email-input" type="email" placeholder="Email or phone" style="width:100%;padding:14px 16px;border:1px solid #dadce0;border-radius:4px;font-size:16px;color:#202124;outline:none;margin-bottom:6px;font-family:inherit;transition:border 0.2s;" />
+        <p id="google-email-hint" style="font-size:12px;color:#5f6368;text-align:left;margin-bottom:20px;">Enter your Google account email</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:14px;color:#1a73e8;cursor:pointer;" onclick="closeGoogleModal()">Cancel</span>
+          <button id="google-next-btn" onclick="googleEmailNext()" style="background:#1a73e8;color:#fff;border:none;padding:10px 24px;border-radius:4px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;">Next</button>
+        </div>
       </div>
-    </section>
 
-    <!-- Footer -->
-    <footer class="footer" aria-label="Site footer">
-      <p class="footer-text">
-        Built with <span aria-label="love">❤️</span> by
-        <span>Sihan Udayaratna</span> · Sentinel AI © 2025
-      </p>
-      <nav class="footer-links" aria-label="Footer links">
-        <a class="footer-link" href="https://github.com/SihanUdayaratna03" target="_blank" rel="noopener" aria-label="GitHub profile">GitHub</a>
-        <a class="footer-link" href="https://aistudio.google.com" target="_blank" rel="noopener" aria-label="Google AI Studio">AI Studio</a>
-        <a class="footer-link" href="https://firecrawl.dev" target="_blank" rel="noopener" aria-label="Firecrawl">Firecrawl</a>
-      </nav>
-    </footer>
-
-  </section>
-
-  <!-- =====================================================
-       VIEW 2 — MODE SELECTION
-  ====================================================== -->
-  <section id="mode-select" class="view" role="main" aria-label="Agent mode selection">
-
-    <!-- Header -->
-    <header class="mode-header">
-      <div>
-        <button class="back-btn" id="mode-back-btn" aria-label="Go back to landing page">
-          ← Back
-        </button>
-      </div>
-      <h1 class="mode-header-title">Choose Your Agent</h1>
-      <p class="mode-header-sub">
-        Select the agent that best fits your task. You can always switch later.
-      </p>
-    </header>
-
-    <!-- Mode Cards -->
-    <div class="mode-cards" role="list" aria-label="Agent mode options">
-
-      <!-- Simple Agent -->
-      <article class="mode-card simple" role="listitem" id="select-simple" tabindex="0"
-               aria-label="Select Simple AI Agent — conversational web scraper">
-        <span class="mode-card-badge">Conversational</span>
-
-        <div class="mode-card-icon" aria-hidden="true">🤖</div>
-
-        <div class="mode-card-body">
-          <h2 class="mode-card-title">Simple AI Agent</h2>
-          <p class="mode-card-desc">
-            A conversational agent that can scrape websites, search the web, and extract data through natural language chat. Powered by 20+ Firecrawl MCP tools.
-          </p>
-
-          <div class="mode-card-tags" aria-label="Features">
-            <span class="mode-tag">Natural Language</span>
-            <span class="mode-tag">Web Scraping</span>
-            <span class="mode-tag">Real-time Search</span>
-            <span class="mode-tag">Chat History</span>
-            <span class="mode-tag">Firecrawl MCP</span>
-          </div>
-
-          <div class="mode-card-cta" aria-hidden="true">
-            <span>Start Chatting</span>
-            <span class="mode-cta-arrow">→</span>
+      <!-- Account confirm step -->
+      <div id="google-step-confirm" style="display:none;">
+        <div id="google-account-row" style="display:flex;align-items:center;gap:14px;padding:12px 16px;border:1px solid #dadce0;border-radius:28px;cursor:pointer;text-align:left;margin-bottom:24px;transition:background 0.15s;">
+          <img id="google-profile-img" src="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;" referrerpolicy="no-referrer">
+          <div style="flex:1;min-width:0;">
+            <div id="google-display-name" style="font-size:14px;font-weight:500;color:#3c4043;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+            <div id="google-display-email" style="font-size:12px;color:#5f6368;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
           </div>
         </div>
-      </article>
-
-      <!-- Advanced Agent -->
-      <article class="mode-card advanced" role="listitem" id="select-advanced" tabindex="0"
-               aria-label="Select Advanced AI Agent — LangGraph research pipeline">
-        <span class="mode-card-badge">Research Pipeline</span>
-
-        <div class="mode-card-icon" aria-hidden="true">🔬</div>
-
-        <div class="mode-card-body">
-          <h2 class="mode-card-title">Advanced AI Agent</h2>
-          <p class="mode-card-desc">
-            A multi-step LangGraph workflow that researches developer tools, analyzes pricing and tech stacks, and generates expert structured recommendations.
-          </p>
-
-          <div class="mode-card-tags" aria-label="Features">
-            <span class="mode-tag">LangGraph Pipeline</span>
-            <span class="mode-tag">Tool Comparison</span>
-            <span class="mode-tag">Structured Reports</span>
-            <span class="mode-tag">Pricing Analysis</span>
-            <span class="mode-tag">Pydantic Output</span>
-          </div>
-
-          <div class="mode-card-cta" aria-hidden="true">
-            <span>Start Research</span>
-            <span class="mode-cta-arrow">→</span>
-          </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:14px;color:#1a73e8;cursor:pointer;" onclick="googleBackToEmail()">← Back</span>
+          <button onclick="googleConfirmLogin()" style="background:#1a73e8;color:#fff;border:none;padding:10px 24px;border-radius:4px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;">Continue</button>
         </div>
-      </article>
-
+      </div>
+      
+      <p id="google-modal-error" style="color:#d93025;font-size:13px;margin-top:12px;display:none;"></p>
     </div>
+  </div>
 
-    <!-- Comparison Table -->
-    <section class="comparison-section" aria-labelledby="comparison-heading">
-      <h2 class="comparison-title" id="comparison-heading">Quick Comparison</h2>
-      <div class="comparison-table" role="table" aria-label="Agent comparison table">
+  <!-- App Shell -->
+  <div class="shell" id="shell">
 
-        <div class="comparison-row header" role="row">
-          <span role="columnheader">Feature</span>
-          <span role="columnheader" style="color: var(--emerald)">🤖 Simple</span>
-          <span role="columnheader" style="color: var(--blue)">🔬 Advanced</span>
-        </div>
-        <div class="comparison-row" role="row">
-          <span class="feature-col" role="cell">Interaction Style</span>
-          <span class="simple-col" role="cell">Conversational chat</span>
-          <span class="advanced-col" role="cell">Query → report</span>
-        </div>
-        <div class="comparison-row" role="row">
-          <span class="feature-col" role="cell">Web Tools</span>
-          <span class="simple-col" role="cell">20+ Firecrawl MCP</span>
-          <span class="advanced-col" role="cell">Targeted Firecrawl API</span>
-        </div>
-        <div class="comparison-row" role="row">
-          <span class="feature-col" role="cell">Output Format</span>
-          <span class="simple-col" role="cell">Plain language answer</span>
-          <span class="advanced-col" role="cell">Structured tool report</span>
-        </div>
-        <div class="comparison-row" role="row">
-          <span class="feature-col" role="cell">Best For</span>
-          <span class="simple-col" role="cell">General Q&amp;A, scraping</span>
-          <span class="advanced-col" role="cell">Dev tool research</span>
-        </div>
-        <div class="comparison-row" role="row">
-          <span class="feature-col" role="cell">Pipeline</span>
-          <span class="simple-col" role="cell">Single-step</span>
-          <span class="advanced-col" role="cell">3-step LangGraph</span>
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside class="sidebar" id="sidebar">
+
+      <div class="sidebar-inner">
+        <!-- Brand -->
+        <div class="brand">
+          <div class="brand-icon">
+            <svg viewBox="0 0 32 32" fill="none">
+              <path d="M16 2C16 9.732 9.732 16 2 16C9.732 16 16 22.268 16 30C16 22.268 22.268 16 30 16C22.268 16 16 9.732 16 2Z" fill="url(#b1)"/>
+              <defs>
+                <linearGradient id="b1" x1="2" y1="2" x2="30" y2="30">
+                  <stop stop-color="#818cf8"/>
+                  <stop offset=".45" stop-color="#a78bfa"/>
+                  <stop offset="1" stop-color="#f472b6"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <span class="brand-name">Sentinel AI</span>
         </div>
 
-      </div>
-    </section>
-
-  </section>
-
-  <!-- =====================================================
-       VIEW 3 — CHAT INTERFACE
-  ====================================================== -->
-  <section id="chat" class="view" role="main" aria-label="Chat interface">
-
-    <!-- Chat Header -->
-    <header class="chat-header">
-      <div class="chat-header-left">
-        <div class="chat-header-logo">
-          <div class="chat-logo-icon" aria-hidden="true">🛡️</div>
-          <span class="chat-logo-text">Sentinel AI</span>
-        </div>
-        <div class="chat-divider" aria-hidden="true"></div>
-        <div class="mode-badge simple" id="chat-mode-badge" role="status" aria-live="polite">
-          <span class="mode-badge-dot" aria-hidden="true"></span>
-          <span id="chat-mode-label">Simple Agent</span>
-        </div>
-      </div>
-
-      <div class="chat-header-right">
-        <button class="chat-action-btn" id="chat-clear-btn" aria-label="Clear chat history">
-          <span aria-hidden="true">🗑️</span>
-          <span>Clear</span>
+        <!-- New Chat -->
+        <button class="new-chat" id="new-chat-btn">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 4v12M4 10h12"/></svg>
+          <span>New conversation</span>
         </button>
-        <button class="change-mode-btn" id="change-mode-btn" aria-label="Switch agent mode">
-          Switch Mode
-        </button>
-      </div>
-    </header>
 
-    <!-- Chat Body -->
-    <main class="chat-body" id="chat-body" aria-label="Conversation thread" aria-live="polite">
-
-      <!-- Welcome State (shown before first message) -->
-      <div class="chat-welcome" id="chat-welcome" aria-label="Chat welcome screen">
-        <div class="chat-welcome-icon simple" id="welcome-icon" aria-hidden="true">🤖</div>
-        <h2 class="chat-welcome-title" id="welcome-title">Simple AI Agent</h2>
-        <p class="chat-welcome-sub" id="welcome-sub">
-          Ask me to scrape websites, search the web, or extract any data — just chat naturally.
-        </p>
-
-        <div class="chat-suggestions" id="chat-suggestions" role="list" aria-label="Suggested prompts">
-          <!-- Populated by JS -->
+        <!-- Mode Group -->
+        <div class="nav-group">
+          <span class="nav-label">Agent Mode</span>
+          <div class="nav-items">
+            <button class="nav-item active" id="mode-btn-simple" data-mode="simple">
+              <span class="nav-item-icon">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="10" r="8"/><path d="M10 7v4l2 2"/></svg>
+              </span>
+              <div class="nav-item-body">
+                <span class="nav-item-title">Simple Agent</span>
+                <span class="nav-item-sub">Chat & scrape</span>
+              </div>
+              <span class="nav-item-badge active-badge">Active</span>
+            </button>
+            <button class="nav-item" id="mode-btn-advanced" data-mode="advanced">
+              <span class="nav-item-icon">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 10h4l3-7 4 14 3-7h4"/></svg>
+              </span>
+              <div class="nav-item-body">
+                <span class="nav-item-title">Advanced Agent</span>
+                <span class="nav-item-sub">LangGraph pipeline</span>
+              </div>
+              <span class="nav-item-badge active-badge" style="display:none">Active</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-    </main>
+        <!-- Recent -->
+        <div class="nav-group" style="flex:1;overflow:hidden">
+          <span class="nav-label">Recent</span>
+          <div class="recent-list" id="recent-list">
+            <p class="empty-hint">Your conversations will appear here</p>
+          </div>
+        </div>
 
-    <!-- Input Area -->
-    <div class="chat-input-area">
-      <div class="chat-input-wrapper">
-        <textarea
-          class="chat-textarea"
-          id="chat-input"
-          placeholder="Ask anything…"
-          rows="1"
-          aria-label="Message input"
-          aria-multiline="true"
-        ></textarea>
-        <div class="chat-input-actions">
-          <button class="send-btn simple" id="send-btn" aria-label="Send message">
-            ➤
+        <!-- User -->
+        <div class="sidebar-user" style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="user-ava" id="user-avatar-char">S</div>
+            <div class="user-meta">
+              <span class="user-name" id="user-name-display">Username</span>
+              <span class="user-tag">
+                <span class="online-dot"></span>
+                Connected
+              </span>
+            </div>
+          </div>
+          <button id="sign-out-btn" title="Sign Out" style="display:flex;align-items:center;gap:6px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);color:#f87171;cursor:pointer;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:500;font-family:inherit;transition:all 0.2s;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+            Sign Out
           </button>
         </div>
       </div>
-      <p class="chat-input-footer" aria-label="Disclaimer">
-        Sentinel AI may produce inaccurate information. Verify critical research before acting on it.
-      </p>
+    </aside>
+
+    <!-- ═══ MAIN ═══ -->
+    <div class="main" id="main">
+
+      <!-- Top Bar -->
+      <header class="topbar">
+        <button class="icon-btn" id="toggle-btn" aria-label="Toggle sidebar">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5h14M3 10h14M3 15h14"/></svg>
+        </button>
+
+        <div class="topbar-pill" id="topbar-pill">
+          <span class="pill-dot"></span>
+          <span id="pill-label">Simple Agent · Gemini 2.5 Flash</span>
+        </div>
+
+        <button class="icon-btn danger" id="clear-btn" aria-label="Clear chat">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5l10 10M15 5L5 15"/></svg>
+        </button>
+      </header>
+
+      <!-- Chat Area -->
+      <div class="chat-area" id="chat-area">
+
+        <!-- Home Screen -->
+        <div class="home" id="home">
+          <div class="home-inner">
+            <div class="home-gem" aria-hidden="true">
+              <svg viewBox="0 0 56 56" fill="none">
+                <path d="M28 4C28 17.255 17.255 28 4 28C17.255 28 28 38.745 28 52C28 38.745 38.745 28 52 28C38.745 28 28 17.255 28 4Z" fill="url(#hg)"/>
+                <defs>
+                  <linearGradient id="hg" x1="4" y1="4" x2="52" y2="52">
+                    <stop stop-color="#818cf8"/>
+                    <stop offset=".5" stop-color="#a78bfa"/>
+                    <stop offset="1" stop-color="#f472b6"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <h1 class="home-greeting">
+              <span class="greeting-line">Good to see you,</span>
+              <span class="greeting-name" id="home-greeting-name">Friend.</span>
+            </h1>
+            <p class="home-sub" id="home-sub">What would you like to research today?</p>
+
+            <div class="chips" id="chips"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Input -->
+      <div class="input-wrap">
+        <div class="input-shell" id="input-shell">
+          <textarea
+            id="chat-input"
+            class="chat-input"
+            placeholder="Ask Sentinel AI anything…"
+            rows="1"
+            aria-label="Message"
+          ></textarea>
+          <div class="input-footer-row">
+            <span class="input-mode-tag" id="input-mode-tag">🤖 Simple</span>
+            <button class="send-btn" id="send-btn" aria-label="Send" disabled>
+              <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2.93 2.93a1 1 0 011.32-.08l13 9a1 1 0 010 1.62l-13 9A1 1 0 012 21.5V3.5a1 1 0 01.93-.57z"/></svg>
+              <span>Send</span>
+            </button>
+          </div>
+        </div>
+        <p class="disclaimer">Sentinel AI can make mistakes. Verify important information.</p>
+      </div>
+
     </div>
+  </div>
 
-  </section>
+  <!-- Pipeline Floating Card -->
+  <div class="pipeline-float" id="pipeline-float" aria-hidden="true">
+    <div class="pipeline-header">
+      <div class="pipeline-ring"></div>
+      <span class="pipeline-title">Running LangGraph Pipeline</span>
+    </div>
+    <div class="pipeline-steps" id="pipeline-steps"></div>
+  </div>
 
-  <script src="app.js?v=2"></script>
+  <div id="toast"></div>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

@@ -1,640 +1,855 @@
-/* ==========================================================
-   SENTINEL AI — App Logic
-   Navigation, chat engine, animations, demo responses
-   ========================================================== */
-
+/* ═══════════════════════════════════════════════════════════
+   SENTINEL AI — Premium App Logic v4
+   ═══════════════════════════════════════════════════════════ */
 'use strict';
 
-// ── State ──────────────────────────────────────────────────
-const state = {
-  currentView: 'landing',
-  currentMode: 'simple',   // 'simple' | 'advanced'
-  messages: [],
-  isTyping: false,
+// ── State ────────────────────────────────────────────────
+const S = {
+  mode: 'simple',
+  msgs: [],
+  loading: false,
+  sidebarOpen: true,
+  recentChats: [],
+  user: null,
+  chatId: null
 };
 
-// ── View IDs ───────────────────────────────────────────────
-const VIEWS = ['landing', 'mode-select', 'chat'];
-
-// ── Suggestion prompts per mode ────────────────────────────
-const SUGGESTIONS = {
+// ── Suggestions ──────────────────────────────────────────
+const CHIPS = {
   simple: [
-    'Scrape https://supabase.com and summarize what they do',
-    'Compare Vercel and Netlify pricing',
-    'Find the top 5 Python web frameworks in 2025',
-    'Search for the latest Next.js 15 features',
+    { icon: '🌐', text: 'Scrape & summarise a website', hint: 'Powered by Firecrawl MCP' },
+    { icon: '⚖️', text: 'Compare two products or services', hint: 'e.g. Vercel vs Netlify pricing' },
+    { icon: '🔎', text: 'Find top tools for a tech stack', hint: 'e.g. best Python ORMs' },
+    { icon: '📰', text: 'Get the latest news on a topic', hint: 'e.g. Next.js 15 features' },
   ],
   advanced: [
-    'Best open-source Firebase alternatives for Next.js',
-    'Top vector databases for AI applications in 2025',
-    'Compare Vercel and Netlify for React deployment',
-    'Best ORM tools for Python developers',
+    { icon: '🔥', text: 'Best Firebase alternatives for Next.js', hint: 'Full 3-step LangGraph report' },
+    { icon: '🗄️', text: 'Top vector databases for AI apps in 2025', hint: 'Full 3-step LangGraph report' },
+    { icon: '▲', text: 'Vercel vs Netlify for React deployment', hint: 'Full 3-step LangGraph report' },
+    { icon: '🐍', text: 'Best ORM tools for Python developers', hint: 'Full 3-step LangGraph report' },
   ],
 };
 
-// ── Demo AI Responses ──────────────────────────────────────
-const SIMPLE_RESPONSES = [
-  {
-    trigger: ['supabase'],
-    reply: `**Supabase** is an open-source Firebase alternative built on PostgreSQL.\n\n**Key offerings:**\n• ✅ Managed PostgreSQL database with real-time subscriptions\n• 🔐 Built-in auth (email, OAuth, magic links)\n• 📦 Object storage with a generous free tier\n• ⚡ Auto-generated REST & GraphQL APIs\n\n**Pricing:** Freemium — free tier includes 500MB database, 1GB storage, 50MB file uploads. Pro plan starts at $25/mo.\n\n**Tech Stack:** PostgreSQL · GoTrue · PostgREST · Realtime (Elixir) · Storage API`,
-  },
-  {
-    trigger: ['vercel', 'netlify'],
-    reply: `**Vercel vs Netlify** — Quick Comparison:\n\n| Feature | Vercel | Netlify |\n|---|---|---|\n| Best for | Next.js / React | Static sites / JAMstack |\n| Free tier | 100GB bandwidth | 100GB bandwidth |\n| Build speed | ⚡ Fastest | Fast |\n| Edge network | 100+ regions | 6 regions |\n| Price (Pro) | $20/mo | $19/mo |\n\n**Verdict:** Vercel wins for Next.js apps with its native framework support and edge runtime. Netlify is excellent for static sites and has more generous CI/CD minutes on the free plan.`,
-  },
-  {
-    trigger: ['python', 'framework', 'web'],
-    reply: `**Top 5 Python Web Frameworks (2025):**\n\n1. **FastAPI** ⚡ — Async, type-safe, OpenAPI auto-docs. Best for APIs & microservices.\n2. **Django** 🏗️ — Batteries-included full-stack framework. Best for complex web apps.\n3. **Flask** 🌶️ — Lightweight micro-framework. Best for small projects & prototyping.\n4. **Starlette** ✨ — ASGI foundation under FastAPI. Best for custom async services.\n5. **Litestar** 🚀 — Modern, highly performant. Rising star for production APIs.\n\nFor a new project in 2025, **FastAPI** is the go-to choice for APIs, and **Django** for full-stack web apps.`,
-  },
-];
+// ── DOM ──────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const ts = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-const ADVANCED_RESPONSE = {
-  steps: [
-    { icon: '🔍', label: 'Extracting tool names from web search…', delay: 800 },
-    { icon: '🕸️', label: 'Scraping official websites for each tool…', delay: 1800 },
-    { icon: '🧠', label: 'Analyzing features, pricing & tech stacks…', delay: 2800 },
-  ],
-  tools: [
-    {
-      icon: '🗄️',
-      name: 'Supabase',
-      tags: ['Open Source', 'PostgreSQL', 'Freemium', 'REST API'],
-      desc: 'Open-source Firebase alternative with a managed Postgres database, real-time subscriptions, built-in auth, and object storage. Excellent community support.',
-    },
-    {
-      icon: '🔥',
-      name: 'Firebase',
-      tags: ['Google', 'NoSQL', 'Freemium', 'Realtime'],
-      desc: 'Google\'s BaaS platform with Firestore NoSQL, Auth, Hosting, and Cloud Functions. Best-in-class mobile SDK support but proprietary lock-in.',
-    },
-    {
-      icon: '🚀',
-      name: 'PocketBase',
-      tags: ['Open Source', 'SQLite', 'Self-hosted', 'Single Binary'],
-      desc: 'Single-file open-source backend with built-in auth, file storage, and real-time APIs. Ideal for small-to-medium projects that need zero infrastructure overhead.',
-    },
-  ],
-  recommendation: 'For a Next.js application, **Supabase** is the top recommendation — it offers a true PostgreSQL experience (enabling complex queries and joins), first-class Next.js/Vercel integration via Edge Functions, and a generous free tier. PocketBase is ideal for self-hosted, lightweight projects. Avoid Firebase if you want SQL querying or plan to migrate data later.',
-};
+// ── Boot ────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  bindAll();
+  setMode('simple');
+  buildChips();
+  checkAuth();
+});
 
-// ── Utility helpers ────────────────────────────────────────
-function getEl(id) { return document.getElementById(id); }
-function now() {
-  return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+// ── Events ──────────────────────────────────────────────
+function bindAll() {
+  $('toggle-btn').addEventListener('click', toggleSidebar);
+  $('new-chat-btn').addEventListener('click', newChat);
+  $('clear-btn').addEventListener('click', clearChat);
+  $('mode-btn-simple').addEventListener('click', () => setMode('simple'));
+  $('mode-btn-advanced').addEventListener('click', () => setMode('advanced'));
+
+  const inp = $('chat-input');
+  inp.addEventListener('input', () => { grow(inp); guard(); });
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+  });
+  $('send-btn').addEventListener('click', () => send());
+
+  $('sign-out-btn').addEventListener('click', doSignOut);
 }
 
-// ── View Navigation ────────────────────────────────────────
-function showView(viewId) {
-  const prev = document.querySelector('.view.active');
-  if (prev) {
-    prev.style.opacity = '0';
-    prev.style.transform = 'translateY(12px)';
-    setTimeout(() => {
-      prev.classList.remove('active');
-      prev.style.opacity = '';
-      prev.style.transform = '';
-    }, 300);
+// ── Authentication ──────────────────────────────────────
+function checkAuth() {
+  const savedUser = localStorage.getItem('sentinel_user');
+  if (savedUser) {
+    try {
+      S.user = JSON.parse(savedUser);
+      updateUserUI();
+      loadUserChats();
+    } catch (e) {
+      showLogin();
+    }
+  } else {
+    showLogin();
   }
-  setTimeout(() => {
-    const next = getEl(viewId);
-    if (!next) return;
-    next.classList.add('active');
-    state.currentView = viewId;
-
-    if (viewId === 'chat') setupChatView();
-  }, prev ? 320 : 0);
 }
 
-// ── Mode Selection ────────────────────────────────────────
-function selectMode(mode) {
-  state.currentMode = mode;
-  state.messages = [];
-  showView('chat');
+function showLogin() {
+  $('login-modal').classList.add('active');
+
+  const mockBtn = $('mock-google-btn');
+  if (mockBtn) {
+    mockBtn.onclick = () => {
+      $('login-modal').classList.remove('active');
+      openGoogleModal();
+    };
+  }
 }
 
-// ── Chat View Setup ────────────────────────────────────────
-function setupChatView() {
-  const mode = state.currentMode;
+function openGoogleModal() {
+  const modal = $('google-email-modal');
+  modal.style.display = 'flex';
+  // Reset to email step
+  $('google-step-email').style.display = 'block';
+  $('google-step-confirm').style.display = 'none';
+  $('google-modal-error').style.display = 'none';
+  const inp = $('google-email-input');
+  inp.value = '';
+  setTimeout(() => inp.focus(), 100);
 
-  // Badge
-  const badge = getEl('chat-mode-badge');
-  const label = getEl('chat-mode-label');
-  badge.className = `mode-badge ${mode}`;
-  label.textContent = mode === 'simple' ? '🤖 Simple Agent' : '🔬 Advanced Agent';
-
-  // Send button colour
-  const sendBtn = getEl('send-btn');
-  sendBtn.className = `send-btn ${mode}`;
-
-  // Placeholder
-  getEl('chat-input').placeholder =
-    mode === 'simple'
-      ? 'Ask me to scrape, search, or research anything…'
-      : 'Describe the developer tools you want to research…';
-
-  // Welcome screen
-  const welcomeIcon = getEl('welcome-icon');
-  const welcomeTitle = getEl('welcome-title');
-  const welcomeSub = getEl('welcome-sub');
-  welcomeIcon.className = `chat-welcome-icon ${mode}`;
-  welcomeIcon.textContent = mode === 'simple' ? '🤖' : '🔬';
-  welcomeTitle.textContent = mode === 'simple' ? 'Simple AI Agent' : 'Advanced AI Agent';
-  welcomeSub.textContent = mode === 'simple'
-    ? 'Ask me to scrape websites, search the web, or extract any data — just chat naturally.'
-    : 'Enter a developer tools query and I\'ll run a full 3-step LangGraph research pipeline to deliver a structured report.';
-
-  // Suggestions
-  renderSuggestions(mode);
-
-  // Restore messages or show welcome
-  renderMessages();
+  // Enter key on email input
+  inp.onkeydown = (e) => { if (e.key === 'Enter') googleEmailNext(); };
 }
 
-function renderSuggestions(mode) {
-  const container = getEl('chat-suggestions');
-  container.innerHTML = '';
-  SUGGESTIONS[mode].forEach(text => {
-    const btn = document.createElement('button');
-    btn.className = 'chat-suggestion';
-    btn.setAttribute('role', 'listitem');
-    btn.setAttribute('aria-label', `Suggested prompt: ${text}`);
-    btn.textContent = text;
-    btn.addEventListener('click', () => sendMessage(text));
-    container.appendChild(btn);
-  });
+function closeGoogleModal() {
+  $('google-email-modal').style.display = 'none';
+  $('login-modal').classList.add('active');
 }
 
-// ── Message Rendering ─────────────────────────────────────
-function renderMessages() {
-  const body = getEl('chat-body');
-  const welcome = getEl('chat-welcome');
+function googleBackToEmail() {
+  $('google-step-confirm').style.display = 'none';
+  $('google-step-email').style.display = 'block';
+  $('google-modal-error').style.display = 'none';
+  setTimeout(() => $('google-email-input').focus(), 100);
+}
 
-  // Clear non-welcome content
-  Array.from(body.children).forEach(child => {
-    if (!child.id || child.id !== 'chat-welcome') child.remove();
-  });
+function googleEmailNext() {
+  const email = $('google-email-input').value.trim();
+  const errEl = $('google-modal-error');
+  errEl.style.display = 'none';
 
-  if (state.messages.length === 0) {
-    welcome.style.display = 'flex';
+  if (!email || !email.includes('@')) {
+    errEl.textContent = 'Enter a valid email address.';
+    errEl.style.display = 'block';
+    $('google-email-input').style.border = '1px solid #d93025';
     return;
   }
+  $('google-email-input').style.border = '1px solid #dadce0';
 
-  welcome.style.display = 'none';
+  // Derive a display name from the email (part before @)
+  const localPart = email.split('@')[0];
+  const displayName = localPart
+    .replace(/[._-]/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
 
-  state.messages.forEach(msg => {
-    if (!getEl(`msg-${msg.id}`)) {
-      body.appendChild(buildMessageEl(msg));
-    }
-  });
+  // Use UI Avatars with the derived name
+  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=1a73e8&color=fff&size=128&bold=true`;
 
-  scrollToBottom();
+  // Populate confirm step
+  $('google-profile-img').src = avatarUrl;
+  $('google-display-name').textContent = displayName;
+  $('google-display-email').textContent = email;
+
+  // Store for use at confirm
+  $('google-email-modal').dataset.email = email;
+  $('google-email-modal').dataset.name = displayName;
+  $('google-email-modal').dataset.picture = avatarUrl;
+
+  $('google-step-email').style.display = 'none';
+  $('google-step-confirm').style.display = 'block';
 }
 
-function buildMessageEl(msg) {
-  const wrapper = document.createElement('div');
-  wrapper.className = `message ${msg.role}`;
-  wrapper.id = `msg-${msg.id}`;
+async function googleConfirmLogin() {
+  const modal = $('google-email-modal');
+  const email = modal.dataset.email;
+  const displayName = modal.dataset.name;
+  const picture = modal.dataset.picture;
 
-  if (msg.role === 'user') {
-    wrapper.innerHTML = `
-      <div class="msg-avatar user-av" aria-hidden="true">U</div>
-      <div class="msg-content">
-        <div class="msg-bubble">${escapeHtml(msg.text)}</div>
-        <span class="msg-time" aria-label="Sent at ${msg.time}">${msg.time}</span>
-      </div>`;
-  } else if (msg.type === 'report') {
-    wrapper.innerHTML = `
-      <div class="msg-avatar ai" aria-hidden="true">🛡️</div>
-      <div class="msg-content" style="max-width:100%">
-        ${buildReportCard(msg)}
-        <span class="msg-time" aria-label="Received at ${msg.time}">${msg.time}</span>
-      </div>`;
-  } else {
-    wrapper.innerHTML = `
-      <div class="msg-avatar ai" aria-hidden="true">🛡️</div>
-      <div class="msg-content">
-        <div class="msg-bubble">${formatMarkdown(msg.text)}</div>
-        <span class="msg-time" aria-label="Received at ${msg.time}">${msg.time}</span>
-      </div>`;
+  // Use the local part of the email as the backend username key
+  const username = email.split('@')[0].replace(/[._-]/g, '').toLowerCase();
+
+  let userId = 'local-' + username;
+  try {
+    const res = await fetch('http://localhost:8000/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username }),
+      signal: AbortSignal.timeout(3000)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      userId = data.user_id;
+    }
+  } catch (e) {
+    console.info('Server not reachable, using local session.');
   }
 
-  return wrapper;
+  S.user = { user_id: userId, username, googleName: displayName, email, picture };
+  localStorage.setItem('sentinel_user', JSON.stringify(S.user));
+
+  modal.style.display = 'none';
+  $('login-modal').classList.remove('active');
+
+  updateUserUI();
+  loadUserChats();
 }
 
-function buildReportCard(msg) {
-  const toolsHtml = msg.tools.map(t => `
-    <div class="tool-result-card">
-      <div class="tool-result-icon" aria-hidden="true">${t.icon}</div>
-      <div class="tool-result-body">
-        <div class="tool-result-name">${t.name}</div>
-        <div class="tool-result-meta" aria-label="Tags for ${t.name}">
-          ${t.tags.map(tag => `<span class="tool-meta-tag">${tag}</span>`).join('')}
-        </div>
-        <div class="tool-result-desc">${t.desc}</div>
-      </div>
-    </div>
-  `).join('');
+function updateUserUI() {
+  if (S.user) {
+    const dName = document.getElementById('user-name-display');
+    const dAva = document.getElementById('user-avatar-char');
+    const greetEl = document.getElementById('home-greeting-name');
+    const firstName = (S.user.googleName || S.user.username).split(' ')[0];
 
-  return `
-    <div class="report-card" role="article" aria-label="Research report">
-      <div class="report-header">
-        <div class="report-header-icon" aria-hidden="true">📋</div>
-        <div class="report-header-info">
-          <div class="report-title">Research Report — ${msg.query}</div>
-          <div class="report-meta">3-step LangGraph pipeline · ${msg.tools.length} tools analyzed</div>
-        </div>
-      </div>
-      <div class="report-steps" aria-label="Pipeline steps completed">
-        <div class="report-step">
-          <div class="step-icon done" aria-label="Completed">✓</div>
-          <span>Extracted tool names from web search</span>
-        </div>
-        <div class="report-step">
-          <div class="step-icon done" aria-label="Completed">✓</div>
-          <span>Scraped &amp; analyzed ${msg.tools.length} official websites</span>
-        </div>
-        <div class="report-step">
-          <div class="step-icon done" aria-label="Completed">✓</div>
-          <span>Generated expert recommendations</span>
-        </div>
-      </div>
-      <div class="report-tools" aria-label="Analyzed tools">${toolsHtml}</div>
-      <div class="report-recommendation">
-        <div class="recommendation-label">💡 Expert Recommendation</div>
-        <div class="recommendation-text">${formatMarkdown(msg.recommendation)}</div>
-      </div>
-    </div>
-  `;
+    if (dName) dName.textContent = S.user.googleName || S.user.username;
+    if (greetEl) greetEl.textContent = firstName + '.';
+    if (dAva) {
+      if (S.user.picture) {
+        dAva.innerHTML = `<img src="${S.user.picture}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" referrerpolicy="no-referrer">`;
+      } else {
+        dAva.textContent = (S.user.googleName || S.user.username).charAt(0).toUpperCase();
+      }
+    }
+  }
 }
 
-// ── Send Message ──────────────────────────────────────────
-async function sendMessage(text) {
-  if (state.isTyping) return;
-  text = (text || '').trim();
+
+function doSignOut() {
+  S.user = null;
+  S.chatId = null;
+  S.recentChats = [];
+  S.msgs = [];
+  localStorage.removeItem('sentinel_user');
+
+  // Reset UI to logged-out state
+  const dName = document.getElementById('user-name-display');
+  const dAva = document.getElementById('user-avatar-char');
+  const greetEl = document.getElementById('home-greeting-name');
+  if (dName) dName.textContent = 'Username';
+  if (dAva) { dAva.innerHTML = ''; dAva.textContent = 'S'; }
+  if (greetEl) greetEl.textContent = 'Friend.';
+
+  resetToHome();
+  renderRecent();
+  showLogin();
+}
+
+// ── Sidebar ──────────────────────────────────────────────
+function toggleSidebar() {
+  S.sidebarOpen = !S.sidebarOpen;
+  $('sidebar').classList.toggle('closed', !S.sidebarOpen);
+  $('toggle-btn').setAttribute('aria-expanded', String(S.sidebarOpen));
+  // Shift pipeline offset
+  updatePipelineOffset();
+}
+
+function updatePipelineOffset() {
+  const pf = $('pipeline-float');
+  if (S.sidebarOpen) {
+    pf.style.removeProperty('transform');
+  } else {
+    pf.style.transform = 'translateX(-50%) translateY(0)';
+  }
+}
+
+// ── Mode ────────────────────────────────────────────────
+function setMode(m) {
+  S.mode = m;
+
+  ['simple', 'advanced'].forEach(id => {
+    const btn = $(`mode-btn-${id}`);
+    const active = id === m;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-checked', String(active));
+    btn.querySelector('.active-badge').style.display = active ? '' : 'none';
+  });
+
+  $('pill-label').textContent = m === 'simple'
+    ? 'Simple Agent · Gemini 2.5 Flash'
+    : 'Advanced Agent · LangGraph Pipeline';
+
+  $('input-mode-tag').textContent = m === 'simple' ? '🤖 Simple' : '🔬 Advanced';
+
+  if ($('home-sub')) {
+    $('home-sub').textContent = m === 'simple'
+      ? 'What would you like to research today?'
+      : 'I\'ll run a 3-step LangGraph pipeline and return a structured report.';
+  }
+
+  if (S.msgs.length === 0) buildChips();
+}
+
+// ── New Chat / Clear ─────────────────────────────────────
+function newChat() {
+  S.msgs = [];
+  S.chatId = null;
+  resetToHome();
+  renderRecent();
+}
+
+function clearChat() {
+  S.msgs = [];
+  S.chatId = null;
+  resetToHome();
+  renderRecent();
+}
+
+function resetToHome() {
+  const mc = document.querySelector('.msgs');
+  if (mc) mc.remove();
+  const h = $('home');
+  if (h) {
+    h.style.display = 'flex';
+    h.style.animation = 'none';
+    requestAnimationFrame(() => {
+      h.style.animation = 'rise .45s cubic-bezier(.25,.46,.45,.94) both';
+    });
+  }
+  buildChips();
+  $('chat-input').value = '';
+  grow($('chat-input'));
+  guard();
+}
+
+// ── Chips ────────────────────────────────────────────────
+function buildChips() {
+  const c = $('chips');
+  if (!c) return;
+  c.innerHTML = '';
+  CHIPS[S.mode].forEach((ch, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'chip';
+    btn.style.animationDelay = `${i * 0.07}s`;
+    btn.innerHTML = `
+      <span class="chip-icon">${ch.icon}</span>
+      <span class="chip-text">${ch.text}</span>
+      <span class="chip-hint">${ch.hint}</span>
+    `;
+    btn.addEventListener('click', () => send(ch.text));
+    c.appendChild(btn);
+  });
+}
+
+// ── Send ─────────────────────────────────────────────────
+async function send(forced) {
+  if (S.loading) return;
+  const inp = $('chat-input');
+  const text = (forced ?? inp.value).trim();
   if (!text) return;
 
-  // Clear input
-  const input = getEl('chat-input');
-  input.value = '';
-  autoResizeTextarea(input);
+  inp.value = '';
+  grow(inp);
+  guard();
 
-  // Add user message
-  const userMsg = {
-    id: Date.now(),
-    role: 'user',
-    text,
-    time: now(),
-  };
-  state.messages.push(userMsg);
-  renderMessages();
+  // Hide home
+  const home = $('home');
+  if (home) home.style.display = 'none';
 
-  state.isTyping = true;
-  getEl('send-btn').disabled = true;
+  // Get/create msgs container
+  const container = getMsgs();
 
-  if (state.currentMode === 'simple') {
-    await simulateSimpleResponse(text);
-  } else {
-    await simulateAdvancedResponse(text);
-  }
-
-  state.isTyping = false;
-  getEl('send-btn').disabled = false;
-  input.focus();
-}
-
-// ── Simple Mode Server Call ─────────────────────────────────
-async function simulateSimpleResponse(query) {
-  // Show typing indicator
-  showTypingIndicator();
-
-  try {
-    // Extract recent context (last 5 messages excluding the current one)
-    const history = state.messages
-      .slice(Math.max(state.messages.length - 6, 0), state.messages.length - 1)
-      .filter(m => m.role !== 'report')
-      .map(m => ({ role: m.role, content: m.text }));
-
-    const response = await fetch('http://localhost:8000/api/simple', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: query, history })
-    });
-
-    if (!response.ok) throw new Error('Network response was not ok');
-    const data = await response.json();
-    
-    removeTypingIndicator();
-    
-    const aiMsg = {
-      id: Date.now(),
-      role: 'ai',
-      text: data.reply,
-      time: now(),
-    };
-    state.messages.push(aiMsg);
-  } catch (error) {
-    removeTypingIndicator();
-    const aiMsg = {
-      id: Date.now(),
-      role: 'ai',
-      text: `**Error:** Failed to connect to the backend server. Please ensure \`uvicorn server:app\` is running.\n\nDetails: ${error.message}`,
-      time: now(),
-    };
-    state.messages.push(aiMsg);
-  }
-  
-  renderMessages();
-}
-
-// ── Advanced Mode Server Call ───────────────────────────────
-async function simulateAdvancedResponse(query) {
-  const steps = [
-    { icon: '🔍', label: 'Extracting tool names from web search…' },
-    { icon: '🕸️', label: 'Scraping official websites for each tool…' },
-    { icon: '🧠', label: 'Analyzing features, pricing & tech stacks…' }
-  ];
-  
-  showPipelineIndicator(steps);
-
-  try {
-    // Start step 1
-    updatePipelineStep(0);
-    
-    // We don't have real-time streaming steps from LangGraph yet,
-    // so we'll visually cycle the steps every few seconds while waiting
-    let stepIndex = 0;
-    const interval = setInterval(() => {
-      if (stepIndex < 2) {
-        stepIndex++;
-        updatePipelineStep(stepIndex);
+  // Ensure we have a chat session
+  if (!S.chatId && S.user) {
+    try {
+      const res = await fetch('http://localhost:8000/api/history/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: S.user.user_id,
+          title: text.slice(0, 46) + (text.length > 46 ? '…' : ''),
+          mode: S.mode
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        S.chatId = data.session_id;
+        loadUserChats();
       }
-    }, 4000);
+    } catch (e) {
+      console.error("Failed to create chat session", e);
+    }
+  }
 
-    const response = await fetch('http://localhost:8000/api/advanced', {
+  // User message
+  S.msgs.push({ id: Date.now(), role: 'user', text });
+  container.appendChild(mkUser(text));
+  scrollDown();
+
+  S.loading = true;
+  $('send-btn').disabled = true;
+
+  if (S.mode === 'simple') await doSimple(text, container);
+  else await doAdvanced(text, container);
+
+  S.loading = false;
+  guard();
+  inp.focus();
+}
+
+// ── Simple API ───────────────────────────────────────────
+async function doSimple(query, container) {
+  const typer = mkTyping();
+  container.appendChild(typer);
+  scrollDown();
+
+  const history = S.msgs
+    .slice(Math.max(0, S.msgs.length - 8), S.msgs.length - 1)
+    .filter(m => m.role !== 'report')
+    .map(m => ({ role: m.role === 'ai' ? 'assistant' : m.role, content: m.text }));
+
+  const bodyParams = { message: query, history };
+  if (S.chatId) bodyParams.chat_id = S.chatId;
+
+  try {
+    const res = await fetch('http://localhost:8000/api/simple', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query })
+      body: JSON.stringify(bodyParams),
     });
-
-    clearInterval(interval);
-    
-    if (!response.ok) throw new Error('Network response was not ok');
-    const data = await response.json();
-    
-    // Final step complete
-    updatePipelineStep(2);
-    await delay(600);
-    removePipelineIndicator();
-
-    const reportMsg = {
-      id: Date.now(),
-      role: 'ai',
-      type: 'report',
-      query: query,
-      tools: data.tools,
-      recommendation: data.recommendation,
-      time: now(),
-    };
-    state.messages.push(reportMsg);
-  } catch (error) {
-    removePipelineIndicator();
-    const errorMsg = {
-      id: Date.now(),
-      role: 'ai',
-      text: `**Error:** Failed to connect to the backend server. Please ensure \`uvicorn server:app\` is running.\n\nDetails: ${error.message}`,
-      time: now(),
-    };
-    state.messages.push(errorMsg);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    typer.remove();
+    const msg = { id: Date.now(), role: 'ai', text: data.reply };
+    S.msgs.push(msg);
+    container.appendChild(mkAi(msg.text));
+  } catch (e) {
+    typer.remove();
+    container.appendChild(mkError(e.message));
   }
+  scrollDown();
+}
+
+// ── Advanced API ──────────────────────────────────────────
+async function doAdvanced(query, container) {
+  showPipeline(['🔍 Extracting tool names from the web…', '🕸️ Scraping official websites…', '🧠 Generating structured report…']);
+
+  let step = 0;
+  const iv = setInterval(() => { if (step < 2) pipelineStep(++step); }, 5000);
+
+  const bodyParams = { query };
+  if (S.chatId) bodyParams.chat_id = S.chatId;
+
+  try {
+    const res = await fetch('http://localhost:8000/api/advanced', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(bodyParams),
+    });
+    clearInterval(iv);
+    pipelineStep(2);
+    await pause(500);
+    hidePipeline();
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    const msg = { id: Date.now(), role: 'ai', type: 'report', query, tools: data.tools, recommendation: data.recommendation };
+    S.msgs.push(msg);
+    container.appendChild(mkReport(msg));
+  } catch (e) {
+    clearInterval(iv);
+    hidePipeline();
+    container.appendChild(mkError(e.message));
+  }
+  scrollDown();
+}
+
+// ── Pipeline ─────────────────────────────────────────────
+let _pSteps = [];
+function showPipeline(steps) {
+  _pSteps = steps;
+  const list = $('pipeline-steps');
+  list.innerHTML = '';
+  steps.forEach((s, i) => {
+    const d = document.createElement('div');
+    d.className = 'pstep' + (i === 0 ? ' active' : '');
+    d.id = `ps-${i}`;
+    d.innerHTML = `<span class="pstep-icon">${i === 0 ? '⏳' : '○'}</span><span>${s}</span>`;
+    list.appendChild(d);
+  });
+  const pf = $('pipeline-float');
+  pf.setAttribute('aria-hidden', 'false');
+  updatePipelineOffset();
+}
+
+function pipelineStep(i) {
+  for (let j = 0; j < i; j++) {
+    const el = $(`ps-${j}`);
+    if (el) { el.className = 'pstep done'; el.querySelector('.pstep-icon').textContent = '✓'; }
+  }
+  const cur = $(`ps-${i}`);
+  if (cur) { cur.className = 'pstep active'; cur.querySelector('.pstep-icon').textContent = '⏳'; }
+}
+
+function hidePipeline() { $('pipeline-float').setAttribute('aria-hidden', 'true'); }
+
+// ── Build Elements ────────────────────────────────────────
+function getMsgs() {
+  let c = document.querySelector('.msgs');
+  if (!c) {
+    c = document.createElement('div');
+    c.className = 'msgs';
+    $('chat-area').appendChild(c);
+  }
+  return c;
+}
+
+function mkUser(text) {
+  const d = document.createElement('div');
+  d.className = 'row-user';
+  const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  d.innerHTML = `
+    <div class="bubble-user">
+      ${esc(text)}
+      <div class="bubble-user-meta">${time}</div>
+    </div>
+  `;
+  return d;
+}
+
+function mkAi(text) {
+  const d = document.createElement('div');
+  d.className = 'row-ai';
+  const copyId = 'c' + Math.random().toString(36).slice(2);
+  const isAdv = S.mode === 'advanced';
+  const agentName = isAdv ? 'Advanced Agent' : 'Simple Agent';
+  const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   
-  renderMessages();
+  d.innerHTML = `
+    <div class="ai-gem">${gemSvg()}</div>
+    <div class="ai-body">
+      <div class="ai-body-meta">
+        <span class="ai-badge">${agentName}</span>
+        <span>• ${time}</span>
+      </div>
+      <div class="ai-text">${md(text)}</div>
+      <div class="ai-actions">
+        <button class="ai-action" id="${copyId}" onclick="cpText('${copyId}',${JSON.stringify(text).replace(/</g,'\\u003c')})">
+          ${copyIco()} Copy text
+        </button>
+      </div>
+    </div>
+  `;
+  return d;
 }
 
-// ── Typing Indicator ──────────────────────────────────────
-function showTypingIndicator() {
-  const body = getEl('chat-body');
-  const el = document.createElement('div');
-  el.className = 'typing-indicator';
-  el.id = 'typing-indicator';
-  el.innerHTML = `
-    <div class="msg-avatar ai" aria-hidden="true">🛡️</div>
-    <div class="typing-bubble" aria-label="Sentinel AI is typing">
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
-    </div>`;
-  body.appendChild(el);
-  scrollToBottom();
+function mkTyping() {
+  const d = document.createElement('div');
+  d.className = 'row-typing';
+  d.innerHTML = `
+    <div class="ai-gem">${gemSvg()}</div>
+    <div class="typing-bub">
+      <div class="td"></div><div class="td"></div><div class="td"></div>
+    </div>
+  `;
+  return d;
 }
 
-function removeTypingIndicator() {
-  const el = getEl('typing-indicator');
-  if (el) el.remove();
+function mkError(msg) {
+  const d = document.createElement('div');
+  d.className = 'row-ai';
+  d.innerHTML = `
+    <div class="ai-gem">${gemSvg()}</div>
+    <div class="ai-body">
+      <div class="msg-error">
+        <strong>Connection error</strong> — Make sure the server is running at <code>localhost:8000</code>.<br>
+        <span style="font-size:12px;opacity:.65">Details: ${esc(msg)}</span>
+      </div>
+    </div>
+  `;
+  return d;
 }
 
-// ── Pipeline Indicator ────────────────────────────────────
-function showPipelineIndicator(steps) {
-  const body = getEl('chat-body');
-  const stepsHtml = steps.map((s, i) => `
-    <div class="pipeline-step-item" id="pipeline-step-${i}" aria-label="Step ${i+1}: ${s.label}">
-      <span aria-hidden="true">${i === 0 ? '⏳' : '○'}</span>
-      <span>${s.label}</span>
+function mkReport(m) {
+  const toolsHtml = (m.tools || []).map(t => `
+    <div class="tool-row">
+      <div class="tool-emoji">${t.icon}</div>
+      <div class="tool-body">
+        <div class="tool-name">${t.name}</div>
+        <div class="tool-tags">${(t.tags||[]).map(tag => `<span class="ttag">${tag}</span>`).join('')}</div>
+        <div class="tool-desc">${t.desc}</div>
+      </div>
     </div>
   `).join('');
 
-  const el = document.createElement('div');
-  el.className = 'pipeline-indicator';
-  el.id = 'pipeline-indicator';
-  el.innerHTML = `
-    <div class="pipeline-header">
-      <div class="pipeline-spinner" aria-hidden="true"></div>
-      <span>Running LangGraph Pipeline…</span>
+  const d = document.createElement('div');
+  d.className = 'row-ai';
+  d.innerHTML = `
+    <div class="ai-gem">${gemSvg()}</div>
+    <div class="ai-body" style="max-width:100%">
+      <div class="report">
+        <div class="report-top">
+          <div class="report-top-icon">📋</div>
+          <div>
+            <div class="report-top-title">Research Report — ${esc(m.query)}</div>
+            <div class="report-top-meta">3-step LangGraph pipeline · ${(m.tools||[]).length} tools analysed</div>
+          </div>
+        </div>
+        <div class="report-steps-row">
+          <div class="rstep"><div class="rcheck">✓</div> Extracted tool names</div>
+          <div class="rstep"><div class="rcheck">✓</div> Scraped ${(m.tools||[]).length} sites</div>
+          <div class="rstep"><div class="rcheck">✓</div> Generated report</div>
+        </div>
+        ${toolsHtml}
+        <div class="report-rec">
+          <div class="rec-label">💡 Expert Recommendation</div>
+          <div class="rec-body">${md(m.recommendation || 'No recommendation available.')}</div>
+        </div>
+      </div>
     </div>
-    <div class="pipeline-steps-list" aria-label="Pipeline progress">${stepsHtml}</div>
   `;
-
-  body.appendChild(el);
-  scrollToBottom();
+  return d;
 }
 
-function updatePipelineStep(index) {
-  const step = getEl(`pipeline-step-${index}`);
-  if (step) {
-    step.classList.add('done');
-    step.querySelector('span').textContent = '✓';
+// ── History & Recent ────────────────────────────────────────
+async function loadUserChats() {
+  if (!S.user) return;
+  try {
+    const res = await fetch(`http://localhost:8000/api/history/user/${S.user.user_id}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    S.recentChats = data.sessions || [];
+    renderRecent();
+  } catch (e) {
+    console.error('Failed to load chats:', e);
   }
-  const next = getEl(`pipeline-step-${index + 1}`);
-  if (next) {
-    next.classList.add('active');
-    next.querySelector('span').textContent = '⏳';
+}
+
+async function loadChatHistory(chat) {
+  if (S.chatId === chat.id) return;
+  S.chatId = chat.id;
+  setMode(chat.mode || 'simple');
+  
+  try {
+    const res = await fetch(`http://localhost:8000/api/history/chat/${chat.id}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    
+    const home = $('home');
+    if (home) home.style.display = 'none';
+    
+    const mc = document.querySelector('.msgs');
+    if (mc) mc.remove();
+    
+    const container = getMsgs();
+    S.msgs = [];
+    
+    data.messages.forEach(msg => {
+      if (msg.role === 'user') {
+        S.msgs.push({ id: msg.id, role: 'user', text: msg.content });
+        container.appendChild(mkUser(msg.content));
+      } else if (msg.role === 'ai') {
+        if (msg.message_type === 'report') {
+           const extra = msg.extra_data ? JSON.parse(msg.extra_data) : {};
+           const rMsg = { id: msg.id, role: 'ai', type: 'report', query: extra.query || 'Report', tools: extra.tools, recommendation: extra.recommendation || msg.content };
+           S.msgs.push(rMsg);
+           container.appendChild(mkReport(rMsg));
+        } else {
+           S.msgs.push({ id: msg.id, role: 'ai', text: msg.content });
+           container.appendChild(mkAi(msg.content));
+        }
+      }
+    });
+    
+    scrollDown();
+    renderRecent();
+  } catch (e) {
+    console.error('Failed to load history:', e);
   }
 }
 
-function removePipelineIndicator() {
-  const el = getEl('pipeline-indicator');
-  if (el) el.remove();
-}
-
-// ── Scroll ────────────────────────────────────────────────
-function scrollToBottom() {
-  const body = getEl('chat-body');
-  requestAnimationFrame(() => {
-    body.scrollTo({ top: body.scrollHeight, behavior: 'smooth' });
+function renderRecent() {
+  const el = $('recent-list');
+  el.innerHTML = '';
+  if (!S.recentChats.length) {
+    el.innerHTML = '<p class="empty-hint">Your conversations will appear here</p>';
+    return;
+  }
+  S.recentChats.forEach(chat => {
+    const d = document.createElement('div');
+    d.className = 'recent-item';
+    if (chat.id === S.chatId) d.style.background = 'var(--c-hover)';
+    d.innerHTML = `<div class="recent-dot"></div><span>${esc(chat.title)}</span>`;
+    d.addEventListener('click', () => loadChatHistory(chat));
+    el.appendChild(d);
   });
 }
 
-// ── Textarea auto-resize ──────────────────────────────────
-function autoResizeTextarea(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+// ── Utilities ─────────────────────────────────────────────
+function scrollDown() {
+  const a = $('chat-area');
+  requestAnimationFrame(() => a.scrollTo({ top: a.scrollHeight, behavior: 'smooth' }));
 }
 
-// ── Markdown formatter (minimal) ──────────────────────────
-function formatMarkdown(text) {
+function grow(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 180) + 'px';
+}
+
+function guard() {
+  $('send-btn').disabled = !$('chat-input').value.trim() || S.loading;
+}
+
+function pause(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function esc(s = '') {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+}
+
+function showToast(msg) {
+  const t = $('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function cpText(btnId, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Copied to clipboard!');
+  });
+}
+
+function copyIco() {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>`;
+}
+
+function gemSvg() {
+  const id = 'g' + Math.random().toString(36).slice(2);
+  return `<svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 2C16 9.732 9.732 16 2 16C9.732 16 16 22.268 16 30C16 22.268 22.268 16 30 16C22.268 16 16 9.732 16 2Z" fill="url(#${id})"/>
+    <defs>
+      <linearGradient id="${id}" x1="2" y1="2" x2="30" y2="30">
+        <stop stop-color="#818cf8"/><stop offset=".5" stop-color="#a78bfa"/><stop offset="1" stop-color="#f472b6"/>
+      </linearGradient>
+    </defs>
+  </svg>`;
+}
+
+function md(text = '') {
+  if (!text) return '';
+
+  // 1. Escape HTML entities first (only in text segments, not tags we create)
+  const ESC = s => s
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+
+  // 2. Process fenced code blocks (``` lang ... ```) FIRST before any other processing
+  let processed = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+    const langLabel = lang ? `<span class="md-code-lang">${ESC(lang)}</span>` : '';
+    return `<div class="md-code-block">${langLabel}<pre><code>${ESC(code.trim())}</code></pre></div>`;
+  });
+
+  // 3. Split into lines for block-level processing
+  const lines = processed.split('\n');
+  const output = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Headings
+    const h1 = line.match(/^# (.+)/);
+    const h2 = line.match(/^## (.+)/);
+    const h3 = line.match(/^### (.+)/);
+    const h4 = line.match(/^#### (.+)/);
+
+    if (h1) { output.push(`<h1 class="md-h1">${inlineFormat(h1[1])}</h1>`); i++; continue; }
+    if (h2) { output.push(`<h2 class="md-h2">${inlineFormat(h2[1])}</h2>`); i++; continue; }
+    if (h3) { output.push(`<h3 class="md-h3">${inlineFormat(h3[1])}</h3>`); i++; continue; }
+    if (h4) { output.push(`<h4 class="md-h4">${inlineFormat(h4[1])}</h4>`); i++; continue; }
+
+    // Horizontal rule
+    if (/^(-{3,}|\*{3,}|_{3,})$/.test(line.trim())) {
+      output.push('<hr class="md-hr">'); i++; continue;
+    }
+
+    // Blockquote
+    if (line.startsWith('> ')) {
+      let bqLines = [];
+      while (i < lines.length && lines[i].startsWith('> ')) {
+        bqLines.push(inlineFormat(lines[i].slice(2)));
+        i++;
+      }
+      output.push(`<blockquote class="md-blockquote">${bqLines.join('<br>')}</blockquote>`);
+      continue;
+    }
+
+    // Table
+    if (line.includes('|') && i + 1 < lines.length && /^\|?[\s|:-]+\|/.test(lines[i + 1])) {
+      const tableLines = [];
+      while (i < lines.length && lines[i].includes('|')) {
+        tableLines.push(lines[i]);
+        i++;
+      }
+      const rows = tableLines.filter(r => !/^\|?[\s|:-]+\|/.test(r));
+      let tableHtml = '<div class="md-table-wrap"><table class="md-table">';
+      rows.forEach((row, ri) => {
+        const cells = row.split('|').map(c => c.trim()).filter((c, ci, arr) => ci !== 0 || c !== '' || arr.length > 1);
+        const tag = ri === 0 ? 'th' : 'td';
+        tableHtml += `<tr>${cells.filter(c => c !== undefined).map(c => `<${tag}>${inlineFormat(c)}</${tag}>`).join('')}</tr>`;
+      });
+      tableHtml += '</table></div>';
+      output.push(tableHtml);
+      continue;
+    }
+
+    // Unordered list
+    if (/^(\s*)([-*•]) /.test(line)) {
+      let listItems = [];
+      while (i < lines.length && /^(\s*)([-*•]) /.test(lines[i])) {
+        const content = lines[i].replace(/^(\s*)([-*•]) /, '');
+        listItems.push(`<li>${inlineFormat(content)}</li>`);
+        i++;
+      }
+      output.push(`<ul class="md-ul">${listItems.join('')}</ul>`);
+      continue;
+    }
+
+    // Ordered list
+    if (/^\d+\. /.test(line)) {
+      let listItems = [];
+      while (i < lines.length && /^\d+\. /.test(lines[i])) {
+        const content = lines[i].replace(/^\d+\. /, '');
+        listItems.push(`<li>${inlineFormat(content)}</li>`);
+        i++;
+      }
+      output.push(`<ol class="md-ol">${listItems.join('')}</ol>`);
+      continue;
+    }
+
+    // Blank line → paragraph break
+    if (line.trim() === '') {
+      output.push('<div class="md-spacer"></div>');
+      i++;
+      continue;
+    }
+
+    // Regular paragraph line
+    output.push(`<p class="md-p">${inlineFormat(line)}</p>`);
+    i++;
+  }
+
+  return output.join('');
+}
+
+// Inline formatting (bold, italic, code, links, strikethrough)
+function inlineFormat(text) {
   return text
+    // Already-processed code block placeholders — skip
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    // HTML-escape
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    // Bold-italic
+    .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
     // Bold
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__(.+?)__/g, '<strong>$1</strong>')
+    // Italic
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/_(.+?)_/g, '<em>$1</em>')
+    // Strikethrough
+    .replace(/~~(.+?)~~/g, '<del>$1</del>')
     // Inline code
-    .replace(/`(.+?)`/g, '<code style="background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px;font-family:\'JetBrains Mono\',monospace;font-size:0.85em">$1</code>')
-    // Unordered list items
-    .replace(/^[•\-\*] (.+)$/gm, '<li style="margin-left:16px;list-style:disc">$1</li>')
-    // Numbered list items
-    .replace(/^\d+\. (.+)$/gm, '<li style="margin-left:16px;list-style:decimal">$1</li>')
-    // Table rows (simple)
-    .replace(/\|(.+)\|/g, (match, content) => {
-      const cells = content.split('|').map(c => c.trim());
-      const isHeader = cells.every(c => c.match(/^[-:]+$/));
-      if (isHeader) return '';
-      const tag = 'td';
-      return `<tr>${cells.map(c => `<${tag} style="padding:6px 12px;border:1px solid rgba(255,255,255,0.06)">${c}</${tag}>`).join('')}</tr>`;
-    })
-    // Wrap consecutive <tr> in <table>
-    .replace(/(<tr>[\s\S]+?<\/tr>)+/g, m => `<table style="border-collapse:collapse;width:100%;margin:8px 0;font-size:13px">${m}</table>`)
-    // Newlines to <br>
-    .replace(/\n/g, '<br>');
+    .replace(/`([^`]+)`/g, '<code class="md-inline-code">$1</code>')
+    // Links  [text](url)
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" class="md-link">$1</a>');
 }
 
-function escapeHtml(str) {
-  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-  return str.replace(/[&<>"']/g, m => map[m]);
-}
-
-// ── Delay helper ──────────────────────────────────────────
-function delay(ms) { return new Promise(res => setTimeout(res, ms)); }
-
-// ── Landing Page Entrance Animation ──────────────────────
-function animateLandingEntrance() {
-  const hero = document.querySelector('.hero');
-  if (hero) {
-    hero.style.opacity = '0';
-    hero.style.transform = 'translateY(30px)';
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        hero.style.transition = 'opacity 0.9s ease, transform 0.9s ease';
-        hero.style.opacity = '1';
-        hero.style.transform = 'translateY(0)';
-      }, 100);
-    });
-  }
-}
-
-// ── Intersection Observer — feature cards entrance ────────
-function setupFeatureCardAnimations() {
-  const cards = document.querySelectorAll('.feature-card');
-  if (!('IntersectionObserver' in window)) return;
-
-  cards.forEach((card, i) => {
-    card.style.opacity = '0';
-    card.style.transform = 'translateY(24px)';
-    card.style.transition = `opacity 0.5s ${i * 0.08}s ease, transform 0.5s ${i * 0.08}s ease`;
-  });
-
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.style.opacity = '1';
-        entry.target.style.transform = 'translateY(0)';
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.12 });
-
-  cards.forEach(card => observer.observe(card));
-}
-
-// ── Event Listeners ───────────────────────────────────────
-function bindEvents() {
-  // Landing → Mode Select
-  getEl('nav-get-started').addEventListener('click', () => showView('mode-select'));
-  getEl('hero-get-started').addEventListener('click', () => showView('mode-select'));
-  getEl('cta-get-started').addEventListener('click', () => showView('mode-select'));
-
-  // Quick nav links
-  getEl('nav-simple').addEventListener('click', () => { state.currentMode = 'simple'; showView('chat'); });
-  getEl('nav-advanced').addEventListener('click', () => { state.currentMode = 'advanced'; showView('chat'); });
-  getEl('nav-docs').addEventListener('click', () => showView('mode-select'));
-  getEl('hero-learn-more').addEventListener('click', () => {
-    document.querySelector('.features-section').scrollIntoView({ behavior: 'smooth' });
-  });
-
-  // Keyboard support for nav links
-  ['nav-simple', 'nav-advanced', 'nav-docs'].forEach(id => {
-    getEl(id).addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); getEl(id).click(); }
-    });
-  });
-
-  // Mode Select → back
-  getEl('mode-back-btn').addEventListener('click', () => showView('landing'));
-
-  // Mode Select → Chat
-  getEl('select-simple').addEventListener('click', () => selectMode('simple'));
-  getEl('select-advanced').addEventListener('click', () => selectMode('advanced'));
-
-  // Keyboard navigation for mode cards
-  ['select-simple', 'select-advanced'].forEach(id => {
-    getEl(id).addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        getEl(id).click();
-      }
-    });
-  });
-
-  // Chat — change mode
-  getEl('change-mode-btn').addEventListener('click', () => showView('mode-select'));
-
-  // Chat — clear
-  getEl('chat-clear-btn').addEventListener('click', () => {
-    state.messages = [];
-    renderMessages();
-  });
-
-  // Chat — send button
-  getEl('send-btn').addEventListener('click', () => {
-    const val = getEl('chat-input').value;
-    if (val.trim()) sendMessage(val);
-  });
-
-  // Chat — Enter key to send (Shift+Enter for newline)
-  getEl('chat-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      const val = getEl('chat-input').value;
-      if (val.trim()) sendMessage(val);
-    }
-  });
-
-  // Textarea auto-resize
-  getEl('chat-input').addEventListener('input', e => autoResizeTextarea(e.target));
-}
-
-// ── Init ──────────────────────────────────────────────────
-function init() {
-  bindEvents();
-  showView('landing');
-  animateLandingEntrance();
-  setupFeatureCardAnimations();
-}
-
-document.addEventListener('DOMContentLoaded', init);
