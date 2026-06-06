@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Sentinel AI — A powerful dual-agent AI system powered by Google Gemini 2.5 Flash, LangGraph, and Firecrawl for real-time web research and intelligent developer tool analysis." />
+  <meta name="keywords" content="Sentinel AI, Gemini, LangGraph, Firecrawl, AI Agent, web scraping, developer tools" />
+  <meta property="og:title" content="Sentinel AI — Dual-Agent Intelligence" />
+  <meta property="og:description" content="Real-time web research and intelligent developer tool analysis powered by Gemini 2.5 Flash." />
+  <title>Sentinel AI — Dual-Agent Intelligence</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>" />
+</head>
+<body>
+
+  <!-- =====================================================
+       AMBIENT BACKGROUND (shared across views)
+  ====================================================== -->
+  <div class="bg-canvas" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+  </div>
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <!-- =====================================================
+       VIEW 1 — LANDING PAGE
+  ====================================================== -->
+  <section id="landing" class="view" role="main" aria-label="Landing page">
+
+    <!-- Navbar -->
+    <nav class="navbar" aria-label="Primary navigation">
+      <a class="nav-logo" href="#" aria-label="Sentinel AI home">
+        <div class="nav-logo-icon" aria-hidden="true">🛡️</div>
+        <span class="nav-logo-text">Sentinel AI</span>
+      </a>
+      <div class="nav-links" role="list">
+        <span class="nav-link" role="listitem" id="nav-simple" tabindex="0">Simple Agent</span>
+        <span class="nav-link" role="listitem" id="nav-advanced" tabindex="0">Advanced Agent</span>
+        <span class="nav-link" role="listitem" id="nav-docs" tabindex="0">Docs</span>
+      </div>
+      <button class="nav-cta" id="nav-get-started" aria-label="Get started with Sentinel AI">
+        Get Started →
+      </button>
+    </nav>
+
+    <!-- Hero -->
+    <header class="hero" aria-labelledby="hero-heading">
+      <div class="hero-badge" aria-label="Powered by Gemini 2.5 Flash">
+        <span class="hero-badge-dot" aria-hidden="true"></span>
+        Powered by Gemini 2.5 Flash
+      </div>
+
+      <h1 class="hero-title" id="hero-heading">
+        <span class="hero-title-main">Welcome to Sentinel AI</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        A powerful dual-agent system for real-time web research and intelligent developer tool analysis — choose your experience.
+      </p>
+
+      <div class="hero-actions">
+        <button class="btn-primary" id="hero-get-started" aria-label="Launch Sentinel AI">
+          Launch Sentinel AI
+          <span class="btn-arrow" aria-hidden="true">→</span>
+        </button>
+        <button class="btn-secondary" id="hero-learn-more" aria-label="Learn more about Sentinel AI">
+          <span aria-hidden="true">📖</span> Learn More
+        </button>
+      </div>
+    </header>
+
+    <!-- Stats Strip -->
+    <div class="stats-strip" role="list" aria-label="Key statistics">
+      <div class="stat-item" role="listitem">
+        <span class="stat-value">2</span>
+        <span class="stat-label">Agent Modes</span>
+      </div>
+      <div class="stat-item" role="listitem">
+        <span class="stat-value">20+</span>
+        <span class="stat-label">Web Tools</span>
+      </div>
+      <div class="stat-item" role="listitem">
+        <span class="stat-value">3</span>
+        <span class="stat-label">Pipeline Steps</span>
+      </div>
+      <div class="stat-item" role="listitem">
+        <span class="stat-value">∞</span>
+        <span class="stat-label">Possibilities</span>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <section class="features-section" aria-labelledby="features-heading">
+      <p class="section-label">Capabilities</p>
+      <h2 class="section-title" id="features-heading">Everything You Need to Research Smarter</h2>
+
+      <div class="features-grid" role="list">
+
+        <article class="feature-card" role="listitem" tabindex="0">
+          <div class="feature-icon purple" aria-hidden="true">🔍</div>
+          <h3 class="feature-title">Real-time Web Scraping</h3>
+          <p class="feature-desc">Scrape any website and extract structured data on demand using Firecrawl's enterprise-grade web crawling engine.</p>
+        </article>
+
+        <article class="feature-card" role="listitem" tabindex="0">
+          <div class="feature-icon blue" aria-hidden="true">🤖</div>
+          <h3 class="feature-title">Dual Agent System</h3>
+          <p class="feature-desc">Choose between a conversational Simple Agent or a multi-step Advanced research agent — tailored to your workflow.</p>
+        </article>
+
+        <article class="feature-card" role="listitem" tabindex="0">
+          <div class="feature-icon green" aria-hidden="true">🧠</div>
+          <h3 class="feature-title">Gemini 2.5 Flash</h3>
+          <p class="feature-desc">Powered by Google's latest and most capable AI model for fast, accurate, and contextually-aware responses.</p>
+        </article>
+
+        <article class="feature-card" role="listitem" tabindex="0">
+          <div class="feature-icon pink" aria-hidden="true">🔄</div>
+          <h3 class="feature-title">LangGraph Workflows</h3>
+          <p class="feature-desc">Structured multi-step agentic pipelines with full state management via LangGraph's powerful state machine framework.</p>
+        </article>
+
+        <article class="feature-card" role="listitem" tabindex="0">
+          <div class="feature-icon indigo" aria-hidden="true">📊</div>
+          <h3 class="feature-title">Structured Output</h3>
+          <p class="feature-desc">Strongly typed Pydantic data models ensure reliable, schema-validated structured output you can depend on.</p>
+        </article>
+
+        <article class="feature-card" role="listitem" tabindex="0">
+          <div class="feature-icon amber" aria-hidden="true">💬</div>
+          <h3 class="feature-title">Persistent Chat</h3>
+          <p class="feature-desc">Maintain full conversation history with context retention across your entire research session.</p>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section" aria-labelledby="cta-heading">
+      <div class="cta-card">
+        <h2 class="cta-title" id="cta-heading">Ready to Start Researching?</h2>
+        <p class="cta-desc">Pick your agent mode and start exploring the web with AI-powered intelligence in seconds.</p>
+        <button class="btn-primary" id="cta-get-started" aria-label="Choose your agent mode">
+          Choose Your Agent
+          <span class="btn-arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" aria-label="Site footer">
+      <p class="footer-text">
+        Built with <span aria-label="love">❤️</span> by
+        <span>Sihan Udayaratna</span> · Sentinel AI © 2025
+      </p>
+      <nav class="footer-links" aria-label="Footer links">
+        <a class="footer-link" href="https://github.com/SihanUdayaratna03" target="_blank" rel="noopener" aria-label="GitHub profile">GitHub</a>
+        <a class="footer-link" href="https://aistudio.google.com" target="_blank" rel="noopener" aria-label="Google AI Studio">AI Studio</a>
+        <a class="footer-link" href="https://firecrawl.dev" target="_blank" rel="noopener" aria-label="Firecrawl">Firecrawl</a>
+      </nav>
+    </footer>
+
+  </section>
+
+  <!-- =====================================================
+       VIEW 2 — MODE SELECTION
+  ====================================================== -->
+  <section id="mode-select" class="view" role="main" aria-label="Agent mode selection">
+
+    <!-- Header -->
+    <header class="mode-header">
+      <div>
+        <button class="back-btn" id="mode-back-btn" aria-label="Go back to landing page">
+          ← Back
+        </button>
+      </div>
+      <h1 class="mode-header-title">Choose Your Agent</h1>
+      <p class="mode-header-sub">
+        Select the agent that best fits your task. You can always switch later.
+      </p>
+    </header>
+
+    <!-- Mode Cards -->
+    <div class="mode-cards" role="list" aria-label="Agent mode options">
+
+      <!-- Simple Agent -->
+      <article class="mode-card simple" role="listitem" id="select-simple" tabindex="0"
+               aria-label="Select Simple AI Agent — conversational web scraper">
+        <span class="mode-card-badge">Conversational</span>
+
+        <div class="mode-card-icon" aria-hidden="true">🤖</div>
+
+        <div class="mode-card-body">
+          <h2 class="mode-card-title">Simple AI Agent</h2>
+          <p class="mode-card-desc">
+            A conversational agent that can scrape websites, search the web, and extract data through natural language chat. Powered by 20+ Firecrawl MCP tools.
+          </p>
+
+          <div class="mode-card-tags" aria-label="Features">
+            <span class="mode-tag">Natural Language</span>
+            <span class="mode-tag">Web Scraping</span>
+            <span class="mode-tag">Real-time Search</span>
+            <span class="mode-tag">Chat History</span>
+            <span class="mode-tag">Firecrawl MCP</span>
+          </div>
+
+          <div class="mode-card-cta" aria-hidden="true">
+            <span>Start Chatting</span>
+            <span class="mode-cta-arrow">→</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Advanced Agent -->
+      <article class="mode-card advanced" role="listitem" id="select-advanced" tabindex="0"
+               aria-label="Select Advanced AI Agent — LangGraph research pipeline">
+        <span class="mode-card-badge">Research Pipeline</span>
+
+        <div class="mode-card-icon" aria-hidden="true">🔬</div>
+
+        <div class="mode-card-body">
+          <h2 class="mode-card-title">Advanced AI Agent</h2>
+          <p class="mode-card-desc">
+            A multi-step LangGraph workflow that researches developer tools, analyzes pricing and tech stacks, and generates expert structured recommendations.
+          </p>
+
+          <div class="mode-card-tags" aria-label="Features">
+            <span class="mode-tag">LangGraph Pipeline</span>
+            <span class="mode-tag">Tool Comparison</span>
+            <span class="mode-tag">Structured Reports</span>
+            <span class="mode-tag">Pricing Analysis</span>
+            <span class="mode-tag">Pydantic Output</span>
+          </div>
+
+          <div class="mode-card-cta" aria-hidden="true">
+            <span>Start Research</span>
+            <span class="mode-cta-arrow">→</span>
+          </div>
+        </div>
+      </article>
+
+    </div>
+
+    <!-- Comparison Table -->
+    <section class="comparison-section" aria-labelledby="comparison-heading">
+      <h2 class="comparison-title" id="comparison-heading">Quick Comparison</h2>
+      <div class="comparison-table" role="table" aria-label="Agent comparison table">
+
+        <div class="comparison-row header" role="row">
+          <span role="columnheader">Feature</span>
+          <span role="columnheader" style="color: var(--emerald)">🤖 Simple</span>
+          <span role="columnheader" style="color: var(--blue)">🔬 Advanced</span>
+        </div>
+        <div class="comparison-row" role="row">
+          <span class="feature-col" role="cell">Interaction Style</span>
+          <span class="simple-col" role="cell">Conversational chat</span>
+          <span class="advanced-col" role="cell">Query → report</span>
+        </div>
+        <div class="comparison-row" role="row">
+          <span class="feature-col" role="cell">Web Tools</span>
+          <span class="simple-col" role="cell">20+ Firecrawl MCP</span>
+          <span class="advanced-col" role="cell">Targeted Firecrawl API</span>
+        </div>
+        <div class="comparison-row" role="row">
+          <span class="feature-col" role="cell">Output Format</span>
+          <span class="simple-col" role="cell">Plain language answer</span>
+          <span class="advanced-col" role="cell">Structured tool report</span>
+        </div>
+        <div class="comparison-row" role="row">
+          <span class="feature-col" role="cell">Best For</span>
+          <span class="simple-col" role="cell">General Q&amp;A, scraping</span>
+          <span class="advanced-col" role="cell">Dev tool research</span>
+        </div>
+        <div class="comparison-row" role="row">
+          <span class="feature-col" role="cell">Pipeline</span>
+          <span class="simple-col" role="cell">Single-step</span>
+          <span class="advanced-col" role="cell">3-step LangGraph</span>
+        </div>
+
+      </div>
+    </section>
+
+  </section>
+
+  <!-- =====================================================
+       VIEW 3 — CHAT INTERFACE
+  ====================================================== -->
+  <section id="chat" class="view" role="main" aria-label="Chat interface">
+
+    <!-- Chat Header -->
+    <header class="chat-header">
+      <div class="chat-header-left">
+        <div class="chat-header-logo">
+          <div class="chat-logo-icon" aria-hidden="true">🛡️</div>
+          <span class="chat-logo-text">Sentinel AI</span>
+        </div>
+        <div class="chat-divider" aria-hidden="true"></div>
+        <div class="mode-badge simple" id="chat-mode-badge" role="status" aria-live="polite">
+          <span class="mode-badge-dot" aria-hidden="true"></span>
+          <span id="chat-mode-label">Simple Agent</span>
+        </div>
+      </div>
+
+      <div class="chat-header-right">
+        <button class="chat-action-btn" id="chat-clear-btn" aria-label="Clear chat history">
+          <span aria-hidden="true">🗑️</span>
+          <span>Clear</span>
+        </button>
+        <button class="change-mode-btn" id="change-mode-btn" aria-label="Switch agent mode">
+          Switch Mode
+        </button>
+      </div>
+    </header>
+
+    <!-- Chat Body -->
+    <main class="chat-body" id="chat-body" aria-label="Conversation thread" aria-live="polite">
+
+      <!-- Welcome State (shown before first message) -->
+      <div class="chat-welcome" id="chat-welcome" aria-label="Chat welcome screen">
+        <div class="chat-welcome-icon simple" id="welcome-icon" aria-hidden="true">🤖</div>
+        <h2 class="chat-welcome-title" id="welcome-title">Simple AI Agent</h2>
+        <p class="chat-welcome-sub" id="welcome-sub">
+          Ask me to scrape websites, search the web, or extract any data — just chat naturally.
+        </p>
+
+        <div class="chat-suggestions" id="chat-suggestions" role="list" aria-label="Suggested prompts">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Input Area -->
+    <div class="chat-input-area">
+      <div class="chat-input-wrapper">
+        <textarea
+          class="chat-textarea"
+          id="chat-input"
+          placeholder="Ask anything…"
+          rows="1"
+          aria-label="Message input"
+          aria-multiline="true"
+        ></textarea>
+        <div class="chat-input-actions">
+          <button class="send-btn simple" id="send-btn" aria-label="Send message">
+            ➤
+          </button>
+        </div>
+      </div>
+      <p class="chat-input-footer" aria-label="Disclaimer">
+        Sentinel AI may produce inaccurate information. Verify critical research before acting on it.
+      </p>
+    </div>
+
+  </section>
+
+  <script src="app.js?v=2"></script>
+</body>
+</html>

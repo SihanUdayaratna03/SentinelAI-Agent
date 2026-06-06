@@ -64,6 +64,13 @@ Make sure you have the following installed:
 - **Node.js 18+** (required for the Simple Agent's MCP server)
 - **pip** (Python package manager)
 
+### Installation
+
+1. Install all required backend dependencies at the root of the project:
+```bash
+pip install -r requirements.txt
+```
+
 ### Get Your API Keys
 
 You will need two API keys:
@@ -73,34 +80,25 @@ You will need two API keys:
 | **Gemini API Key** | [Google AI Studio](https://aistudio.google.com/app/apikey) | Powers the AI brain |
 | **Firecrawl API Key** | [Firecrawl.dev](https://firecrawl.dev) | Powers web scraping |
 
+## 🚀 Running the Full Application
+
+The application is now a fully integrated system with a FastAPI backend and a gorgeous web frontend.
+
+### 1. Start the Backend Server
+The server manages both the Simple and Advanced agents, exposing them as APIs.
+- **On Windows**: Double-click the `run_server.bat` file.
+- **Or via terminal**: Run `python server.py`
+
+*(Wait a few seconds for the Firecrawl MCP server to boot up until it says "Application startup complete".)*
+
+### 2. Open the Frontend
+You do not need to run a web server for the frontend! It is a pure HTML/JS application.
+- Simply navigate to the `frontend/` folder.
+- **Double-click** `index.html` to open it in your web browser.
+
 ---
 
 ## 🤖 Simple Agent
-
-A conversational AI agent that can scrape websites, search the web, and extract data — all through natural language chat.
-
-### Setup
-
-```bash
-cd simple-agent
-```
-
-Create your `.env` file:
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-FIRECRAWL_API_KEY=your_firecrawl_api_key_here
-```
-
-Install dependencies:
-```bash
-pip install -e .
-```
-
-### Run
-
-```bash
-python main.py
-```
 
 ### Example Prompts
 
@@ -229,36 +227,26 @@ Supabase is the best choice for open-source Firebase alternatives...
 ### High-Level System Architecture
 ```mermaid
 graph TD
-    U[User] --> G[Gemini 2.5 Flash<br>LLM backbone]
-    U --> F[Firecrawl API<br>Web scraping engine]
+    U[User] --> FE[Frontend UI<br>HTML / CSS / JS]
+    FE -->|HTTP POST| BE[FastAPI Server<br>server.py]
     
-    subgraph SimpleAgent [Simple agent - Conversational scraper]
-        M1[main.py<br>Chat loop]
-        MCP[MCP server npx<br>20+ Firecrawl tools]
-    end
+    BE -->|/api/simple| SA[Simple Agent<br>create_react_agent]
+    BE -->|/api/advanced| AA[Advanced Agent<br>LangGraph Workflow]
     
-    subgraph AdvancedAgent [Advanced agent - LangGraph pipeline]
-        W1[workflow.py<br>3-node state machine]
-        S1[src/<br>models • firecrawl • prompts]
-    end
+    SA <-->|MCP| FC_MCP[Firecrawl MCP Server<br>npx firecrawl-mcp]
+    AA <-->|API| FC_API[Firecrawl API<br>firecrawl-py]
     
-    G --> SimpleAgent
-    F --> AdvancedAgent
-    
-    SimpleAgent --> A1[Scraped answer]
-    AdvancedAgent --> A2[Research report]
+    SA <--> G[Gemini 2.5 Flash]
+    AA <--> G
     
     style U fill:#4B5563,color:#fff,stroke:none
+    style FE fill:#ec4899,color:#fff,stroke:none
+    style BE fill:#059669,color:#fff,stroke:none
     style G fill:#4338CA,color:#fff,stroke:none
-    style F fill:#4338CA,color:#fff,stroke:none
-    style SimpleAgent fill:#064E3B,color:#fff,stroke:#059669
-    style AdvancedAgent fill:#1E3A8A,color:#fff,stroke:#3B82F6
-    style M1 fill:#374151,color:#fff,stroke:none
-    style MCP fill:#374151,color:#fff,stroke:none
-    style W1 fill:#374151,color:#fff,stroke:none
-    style S1 fill:#374151,color:#fff,stroke:none
-    style A1 fill:#047857,color:#fff,stroke:none
-    style A2 fill:#1D4ED8,color:#fff,stroke:none
+    style FC_MCP fill:#374151,color:#fff,stroke:none
+    style FC_API fill:#374151,color:#fff,stroke:none
+    style SA fill:#047857,color:#fff,stroke:none
+    style AA fill:#1D4ED8,color:#fff,stroke:none
 ```
 
 ### Simple Agent Data Flow
