@@ -204,16 +204,16 @@ html, body {
 }
 
 .brand-icon {
-  width: 30px;
-  height: 30px;
+  width: 58px;
+  height: 58px;
   flex-shrink: 0;
-  filter: drop-shadow(0 0 12px rgba(167,139,250,0.5));
+  filter: drop-shadow(0 0 12px rgba(167,139,250,0.7));
   animation: gem-pulse 3s ease-in-out infinite;
 }
 
 @keyframes gem-pulse {
-  0%, 100% { filter: drop-shadow(0 0 8px rgba(167,139,250,0.4)); }
-  50%       { filter: drop-shadow(0 0 18px rgba(167,139,250,0.7)); }
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(167,139,250,0.5)); }
+  50%       { filter: drop-shadow(0 0 22px rgba(167,139,250,1.0)); }
 }
 
 .brand-name {
@@ -634,9 +634,9 @@ html, body {
 }
 
 .home-gem {
-  width: 72px; height: 72px;
+  width: 180px; height: 180px;
   animation: gem-float 4s ease-in-out infinite;
-  filter: drop-shadow(0 0 24px rgba(167,139,250,.6));
+  filter: drop-shadow(0 0 36px rgba(167,139,250,.9));
 }
 
 @keyframes gem-float {
