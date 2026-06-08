@@ -1,6 +1,8 @@
-# 🤖 SentinelAI Agent
-
 <div align="center">
+
+<img src="frontend/sentinel-logo.png" alt="Sentinel AI Logo" width="150" />
+
+# 🤖 SentinelAI Agent
 
 ![Python](https://img.shields.io/badge/Python-3.14-blue?style=for-the-badge&logo=python&logoColor=white)
 ![Google Gemini](https://img.shields.io/badge/Gemini_2.5_Flash-AI_Powered-8E75B2?style=for-the-badge&logo=google&logoColor=white)
